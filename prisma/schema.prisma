@@ -1,0 +1,307 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum otpReason {
+  REGISTER
+  FORGETPASSWORD
+}
+
+enum userType {
+  ADMIN
+  USER
+}
+
+enum socialType {
+  GOOGLE
+  APPLE
+}
+
+enum deviceType {
+  ANDROID
+  IOS
+}
+
+model Admin {
+
+  id             String      @id @default(uuid())
+  email          String   @unique
+  password       String?
+  name           String?
+  deviceToken    String?
+  userType       userType?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime?           @updatedAt
+
+  AboutApp AboutApp[]
+
+  TermsCondition TermsCondition[]
+
+  PrivacyPolicy PrivacyPolicy[]
+
+  Sticker Sticker[]
+
+  Message Message[]
+
+  MessageStickerCategory MessageStickerCategory[]
+
+  MileStoneCategory MileStoneCategory[]
+
+  RemiderCategory RemiderCategory[]
+
+  OtherOptionRemiderCategory OtherOptionRemiderCategory[]
+}
+
+model User{
+  id                     String      @id @default(uuid())
+  email                  String   @unique
+  firstName               String? 
+  lastName               String? 
+  password               String?
+  phoneNumber            String?
+  country                String?
+  image                  String?
+  deviceType     deviceType?
+  deviceToken    String?     
+  userType       userType?
+  socialType     socialType? 
+  notificationOnAndOff   Boolean  @default(false)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime?           @updatedAt 
+  
+  Otp Otp[]
+
+  Contacts Contacts[]
+
+  FavoriteContact FavoriteContact[]
+
+  Milestone Milestone[]
+
+  Notification Notification[]
+
+  UserSubscription UserSubscription[]
+}
+model Otp {
+  id         String       @id @default(uuid())
+  otp        String    @unique
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String?
+  otpReason  otpReason
+  email      String? 
+  expiresAt  DateTime
+  otpUsed    Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model AboutApp{
+  id                     String      @id @default(uuid())
+  text                  String
+  createdById        String
+  createdBy          Admin               @relation(fields: [createdById], references: [id])
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime?           @updatedAt
+}
+
+model TermsCondition{
+  id                 String                 @id @default(uuid())
+  text      String
+  createdById        String
+  createdBy          Admin               @relation(fields: [createdById], references: [id])
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime?           @updatedAt
+}
+
+model PrivacyPolicy{
+  id                 String                 @id @default(uuid())
+  text      String
+  createdById        String
+  createdBy          Admin               @relation(fields: [createdById], references: [id])
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime?           @updatedAt
+}
+
+model Feedback {
+  id           String      @id @default(uuid())
+  message         String
+  email  String
+  phone  String
+  name String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime? @updatedAt
+}
+
+
+model MessageStickerCategory {
+  id        String     @id @default(uuid())
+  name      String    
+  createdById String
+  createdBy Admin   @relation(fields: [createdById], references: [id])
+
+  stickers  Sticker[]
+  messages  Message[]
+}
+
+model MileStoneCategory {
+  id           String       @id @default(uuid())
+  name         String    
+  createdById  String
+  createdBy    Admin     @relation(fields: [createdById], references: [id])
+
+  // These are the relation fields — give them unique names
+  mainMilestones     Milestone[] @relation(name: "MilestoneToCategory")
+  otherMilestones    Milestone[] @relation(name: "MilestoneToOtherCategory")
+}
+
+model RemiderCategory {
+  id        String     @id @default(uuid())
+  name      String
+  createdById String
+  createdBy Admin   @relation(fields: [createdById], references: [id])
+
+  Milestone Milestone[]
+
+  Notification Notification[]
+}  
+
+model OtherOptionRemiderCategory {
+  id        String     @id @default(uuid())
+  name      String
+  createdById String
+  createdBy Admin   @relation(fields: [createdById], references: [id])
+
+  Milestone Milestone[]
+}  
+
+model Sticker {
+  id             String     @id @default(uuid())
+  url            String
+   hash         String?
+  categoryId     String
+  category       MessageStickerCategory @relation(fields: [categoryId], references: [id])
+
+  createdById    String
+  createdBy      Admin   @relation(fields: [createdById], references: [id])
+
+  milestones     Milestone[]
+}
+
+model Message {
+  id             String     @id @default(uuid())
+  text           String
+  categoryId     String
+  category       MessageStickerCategory @relation(fields: [categoryId], references: [id])
+
+  createdById    String
+  createdBy      Admin   @relation(fields: [createdById], references: [id])
+
+  milestones     Milestone[]
+}
+
+model Milestone {
+  id          String       @id @default(uuid())
+  title       String
+  categoryId  String?
+  date        DateTime
+  hostname    String
+  Phonenumber String
+  hostmessage String
+  reminderId  String?
+  messageId   String?
+  stickerId   String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt 
+
+  message     Message?  @relation(fields: [messageId], references: [id])
+  sticker     Sticker?  @relation(fields: [stickerId], references: [id])
+  
+  category    MileStoneCategory? @relation(name: "MilestoneToCategory", fields: [categoryId], references: [id]) // ✅ named relation
+
+  reminder    RemiderCategory?  @relation(fields: [reminderId], references: [id])
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  MileStoneCategory MileStoneCategory[] @relation(name: "MilestoneToOtherCategory") // ✅ distinct relation name
+
+  OtherOptionRemiderCategory OtherOptionRemiderCategory[]
+
+  Notification Notification[]
+}
+
+
+model Contacts {
+  id          String    @id @default(uuid())
+  name        String
+  email       String? @unique
+  phoneNumber String
+  image       String
+  relation    String ?
+createdById    String
+  createdBy      User   @relation(fields: [createdById], references: [id])
+  
+FavoriteContact FavoriteContact[]
+}
+
+model FavoriteContact{
+  id          String    @id @default(uuid())
+  contactId   String
+   contact    Contacts @relation(fields: [contactId], references: [id])
+   createdById    String
+  createdBy      User   @relation(fields: [createdById], references: [id])
+}
+
+model Notification {
+  id           String              @id @default(uuid())
+  userId       String
+  user         User             @relation(fields: [userId], references: [id])
+
+  reminderId   String? 
+  milestoneId  String?
+
+  reminder     RemiderCategory? @relation(fields: [reminderId], references: [id], map: "fk_reminder_id")
+  milestone    Milestone?       @relation(fields: [milestoneId], references: [id], map: "fk_milestone_id")
+
+  title        String
+  description  String
+  isRead       Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model SubscriptionPlan {
+  id          String      @id @default(uuid())
+  name        String   @unique       // Free, Basic, Advance
+  price       Float                   // e.g., 0.0 for Free
+  duration    Int                     // in days
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subscriptions UserSubscription[]
+}
+
+// User Subscription History
+model UserSubscription {
+  id                 String               @id @default(uuid())
+  userId             String
+  subscriptionPlanId String
+  startDate          DateTime          @default(now())
+  endDate            DateTime
+  isActive           Boolean           @default(true)
+
+  user               User              @relation(fields: [userId], references: [id])
+  subscriptionPlan   SubscriptionPlan @relation(fields: [subscriptionPlanId], references: [id])
+}
+
+
