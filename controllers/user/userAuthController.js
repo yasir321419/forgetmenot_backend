@@ -30,7 +30,7 @@ const SignUp = async (req, res, next) => {
     const saveotp = await prisma.otp.create({
       data: {
         otp: otp,
-        userId: null,
+        // userId: null,
         otpReason: otpConstants.REGISTER,
         otpUsed: false,
         expiresAt: expiretime,
@@ -57,14 +57,14 @@ const VerifyOtp = async (req, res, next) => {
   try {
     const {
       email,
-      phoneNumber,
-      firstName,
-      lastName,
+      // phoneNumber,
+      // firstName,
+      // lastName,
       password,
-      otp,
-      country,
-      deviceToken,
-      deviceType
+      otp
+      // country,
+      // deviceToken,
+      // deviceType
     } = req.body;
 
     // ✅ Find OTP
@@ -96,12 +96,12 @@ const VerifyOtp = async (req, res, next) => {
         data: {
           email,
           password: hashedPassword,
-          phoneNumber,
-          firstName,
-          lastName,
-          country,
-          deviceToken,
-          deviceType,
+          // phoneNumber,
+          // firstName,
+          // lastName,
+          // country,
+          // deviceToken,
+          // deviceType,
           userType: userConstants.USER
         }
       });
@@ -113,40 +113,40 @@ const VerifyOtp = async (req, res, next) => {
         },
         data: {
           otpUsed: true,
-          userId: saveuser.id,
+          // userId: saveuser.id,
         },
       });
 
-      // ✅ Assign Free subscription plan
-      let freePlan = await prisma.subscriptionPlan.findUnique({
-        where: { name: 'Free' }
-      });
+      // // ✅ Assign Free subscription plan
+      // let freePlan = await prisma.subscriptionPlan.findUnique({
+      //   where: { name: 'Free' }
+      // });
 
-      // Auto-create Free plan if not exists
-      if (!freePlan) {
-        freePlan = await prisma.subscriptionPlan.create({
-          data: {
-            name: 'Free',
-            price: 0.0,
-            duration: 7 // day
-          }
-        });
-      }
+      // // Auto-create Free plan if not exists
+      // if (!freePlan) {
+      //   freePlan = await prisma.subscriptionPlan.create({
+      //     data: {
+      //       name: 'Free',
+      //       price: 0.0,
+      //       duration: 7 // day
+      //     }
+      //   });
+      // }
 
-      const now = new Date();
-      const expiry = new Date();
-      expiry.setDate(expiry.getDate() + 7); // Set expiry to 7 days later
+      // const now = new Date();
+      // const expiry = new Date();
+      // expiry.setDate(expiry.getDate() + 7); // Set expiry to 7 days later
 
 
-      await prisma.userSubscription.create({
-        data: {
-          userId: saveuser.id,
-          subscriptionPlanId: freePlan.id,
-          startDate: now,
-          endDate: expiry,
-          isActive: true
-        }
-      });
+      // await prisma.userSubscription.create({
+      //   data: {
+      //     userId: saveuser.id,
+      //     subscriptionPlanId: freePlan.id,
+      //     startDate: now,
+      //     endDate: expiry,
+      //     isActive: true
+      //   }
+      // });
 
       // Generate token
       const token = genToken({
@@ -179,7 +179,7 @@ const VerifyOtp = async (req, res, next) => {
         },
         data: {
           otpUsed: true,
-          userId: finduser.id,
+          // userId: finduser.id,
         },
       });
 
@@ -218,7 +218,7 @@ const forgetPassword = async (req, res, next) => {
     const saveotp = await prisma.otp.create({
       data: {
         otp: otp,
-        userId: finduser.id,
+        // userId: finduser.id,
         otpReason: otpConstants.FORGETPASSWORD,
         otpUsed: false,
         expiresAt: expiretime,
@@ -558,6 +558,100 @@ const socialLogin = async (req, res, next) => {
   }
 };
 
+const createdProfile = async (req, res, next) => {
+  try {
+    const { email } = req.user;
+    const {
+      phoneNumber,
+      firstName,
+      lastName,
+      country,
+      deviceToken,
+      deviceType
+    } = req.body;
+
+    // ✅ Create the user
+    const saveuser = await prisma.user.update({
+      where: {
+        email
+      },
+      data: {
+        // email,
+        // password: hashedPassword,
+        phoneNumber,
+        firstName,
+        lastName,
+        country,
+        deviceToken,
+        deviceType,
+        userType: userConstants.USER,
+        isCreatedProfile: true
+      }
+    });
+
+    // ✅ Mark OTP as used
+    const otpRecord = await prisma.otp.findFirst({
+      where: {
+        email: email
+      }
+    });
+
+    if (!otpRecord) {
+      throw new NotFoundError("OTP not found");
+    }
+
+    await prisma.otp.update({
+      where: {
+        id: otpRecord.id,  // Use the id of the found OTP record
+      },
+      data: {
+        otpUsed: true,
+      },
+    });
+
+    // ✅ Assign Free subscription plan
+    let freePlan = await prisma.subscriptionPlan.findUnique({
+      where: { name: 'Free' }
+    });
+
+    // Auto-create Free plan if not exists
+    if (!freePlan) {
+      freePlan = await prisma.subscriptionPlan.create({
+        data: {
+          name: 'Free',
+          price: 0.0,
+          duration: 7 // day
+        }
+      });
+    }
+
+    const now = new Date();
+    const expiry = new Date();
+    expiry.setDate(expiry.getDate() + 7); // Set expiry to 7 days later
+
+
+    await prisma.userSubscription.create({
+      data: {
+        userId: saveuser.id,
+        subscriptionPlanId: freePlan.id,
+        startDate: now,
+        endDate: expiry,
+        isActive: true
+      }
+    });
+
+    // Generate token
+    const token = genToken({
+      id: saveuser.id,
+      userType: userConstants.USER,
+    });
+
+    return handlerOk(res, 201, { ...saveuser, userToken: token }, "User Profile Created Successfully");
+
+  } catch (error) {
+    next(error)
+  }
+}
 
 
 
@@ -572,6 +666,7 @@ module.exports = {
   socialLogin,
   forgetPassword,
   resetPassword,
-  resendOtp
+  resendOtp,
+  createdProfile
 
 }

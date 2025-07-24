@@ -13,8 +13,6 @@ const userVerifyOtpSchema = Joi.object({
   params: Joi.object({}),
   body: Joi.object({
     email: Joi.string().required(),
-    firstName: Joi.string().optional(),
-    lastName: Joi.string().optional(),
     password: Joi.string()
       .min(8)
       .max(30)
@@ -28,10 +26,19 @@ const userVerifyOtpSchema = Joi.object({
       .optional()
       .messages({ 'any.only': 'Confirm password must match password' }),
     otp: Joi.string().required(),
-    phoneNumber: Joi.string().optional(),
-    country: Joi.string().optional(),
-    deviceToken: Joi.string().optional(),
-    deviceType: Joi.string().optional(),
+  }),
+});
+
+const userCreatedProfileSchema = Joi.object({
+  query: Joi.object({}),
+  params: Joi.object({}),
+  body: Joi.object({
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
+    phoneNumber: Joi.string().required(),
+    country: Joi.string().required(),
+    deviceToken: Joi.string().required(),
+    deviceType: Joi.string().required(),
   }),
 });
 
@@ -157,5 +164,6 @@ module.exports = {
   resetPasswordSchema,
   changePasswordSchema,
   editProfileSchema,
-  socialLoginSchema
+  socialLoginSchema,
+  userCreatedProfileSchema
 }
