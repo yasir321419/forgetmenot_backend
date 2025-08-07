@@ -208,6 +208,8 @@ model Message {
   createdBy      Admin   @relation(fields: [createdById], references: [id])
 
   milestones     Milestone[]
+
+  @@unique([text, categoryId])  // Unique constraint to prevent duplicates
 }
 
 model Milestone {

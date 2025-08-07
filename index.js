@@ -11,6 +11,7 @@ const dbConnect = require('./db/connectivity');
 const cron = require("node-cron");
 const checkAndSendReminderNotifications = require('./utils/sendReminderNotification');
 const adminSeed = require('./seeder/adminseed');
+const messageSeed = require('./seeder/messageseed');
 
 require("dotenv").config();
 
@@ -32,6 +33,8 @@ app.get("/", (req, res) => {
 dbConnect();
 
 adminSeed();
+
+messageSeed();
 
 
 cron.schedule("* * * * *", async () => {
