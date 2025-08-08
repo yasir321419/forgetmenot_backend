@@ -4,10 +4,10 @@ const saveUserContantsSchema = Joi.object({
   query: Joi.object({}),
   params: Joi.object({}),
   body: Joi.object({
-    email: Joi.string().required(),
-    name: Joi.string().required(),
+    email: Joi.string().optional(),
+    name: Joi.string().optional(),
     phone: Joi.string().required(),
-    relation: Joi.string().required()
+    relation: Joi.string().optional()
   }),
 });
 

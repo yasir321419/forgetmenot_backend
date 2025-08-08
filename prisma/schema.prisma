@@ -246,11 +246,10 @@ model Milestone {
 
 model Contacts {
   id          String    @id @default(uuid())
-  name        String
+  name        String?
   email       String? @unique
   phoneNumber String
-  image       String
-  relation    String ?
+  image       String?
 createdById    String
   createdBy      User   @relation(fields: [createdById], references: [id])
   
