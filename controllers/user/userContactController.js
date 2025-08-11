@@ -2,105 +2,7 @@ const prisma = require("../../config/prismaConfig");
 const { ValidationError, NotFoundError, ConflictError } = require("../../handler/CustomError");
 const { handlerOk } = require("../../handler/resHandler");
 
-// const saveUserContacts = async (req, res, next) => {
-//   try {
-//     const { email, name, phone, relation } = req.body;
-//     console.log(req.body);
 
-//     const { id } = req.user;
-//     const files = req.files;
-//     console.log(files, 'files')
-//     const contacts = [];
-
-//     for (let i = 0; i < name.length; i++) {
-//       const filePath = files[i].filename; // use filename instead of path
-//       const basePath = `http://${req.get("host")}/public/uploads/`;
-//       const image = `${basePath}${filePath}`;
-
-//       contacts.push({
-//         name: name[i],
-//         email: email[i],
-//         phoneNumber: phone[i],
-//         image: image,
-//         createdById: id,
-//         relation: relation[i]
-//       })
-
-//       console.log(contacts, 'contacts');
-
-//     }
-
-//     const saved = await prisma.contacts.createMany({
-//       data: contacts
-//     });
-
-//     if (!saved) {
-//       throw new ValidationError("contact not save")
-//     }
-
-//     handlerOk(res, 200, saved, "contact saved successfully")
-//   } catch (error) {
-//     next(error)
-//   }
-// }
-
-// const saveUserContacts = async (req, res, next) => {
-//   try {
-//     const { email, name, phone, relation } = req.body;
-//     console.log(req.body);
-
-//     const { id } = req.user;
-//     const files = req.files;
-//     console.log(files, 'files');
-//     const contacts = [];
-
-//     for (let i = 0; i < name.length; i++) {
-//       // Check if contact with the same name, email, and phone already exists
-//       const existingContact = await prisma.contacts.findFirst({
-//         where: {
-//           email: email[i],
-//           phoneNumber: phone[i],
-//           name: name[i],
-//         },
-//       });
-
-//       if (existingContact) {
-//         return res.status(400).json({
-//           success: false,
-//           message: `Contact with email ${email[i]} and phone ${phone[i]} already exists.`,
-//         });
-//       }
-
-//       // Check if there is a file for this contact, otherwise skip the image field
-//       const filePath = files && files[i] ? files[i].filename : null;
-//       const basePath = `http://${req.get("host")}/public/uploads/`;
-//       const image = filePath ? `${basePath}${filePath}` : null;  // Use the default value if no file is found
-
-//       contacts.push({
-//         name: name[i],
-//         email: email[i],
-//         phoneNumber: phone[i],
-//         image: image,  // This can be null if no file is uploaded
-//         createdById: id,
-//         relation: relation[i]
-//       });
-
-//       console.log(contacts, 'contacts');
-//     }
-
-//     const saved = await prisma.contacts.createMany({
-//       data: contacts
-//     });
-
-//     if (!saved) {
-//       throw new ValidationError("Contact not saved");
-//     }
-
-//     handlerOk(res, 200, saved, "Contacts saved successfully");
-//   } catch (error) {
-//     next(error);
-//   }
-// }
 
 const saveUserContacts = async (req, res, next) => {
   try {
@@ -108,12 +10,12 @@ const saveUserContacts = async (req, res, next) => {
     const { email, name, phone } = req.body;
 
     // Validate if the required fields are arrays
-    if (!Array.isArray(name) || !Array.isArray(email) || !Array.isArray(phone)) {
-      return res.status(400).json({
-        success: false,
-        message: "Name, email, phone, must be arrays."
-      });
-    }
+    // if (!Array.isArray(name) || !Array.isArray(email) || !Array.isArray(phone)) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Name, email, phone, must be arrays."
+    //   });
+    // }
 
     // Log the request body
     console.log(req.body);
@@ -138,7 +40,7 @@ const saveUserContacts = async (req, res, next) => {
       });
 
       if (existingContact) {
-        return res.status(400).json({
+        return res.status(200).json({
           success: false,
           message: `Contact with email ${email[i]} and phone ${phone[i]} already exists.`,
         });
@@ -175,9 +77,6 @@ const saveUserContacts = async (req, res, next) => {
     next(error);
   }
 };
-
-
-
 
 const showUserContacts = async (req, res, next) => {
   try {
@@ -277,6 +176,10 @@ const saveFavoriteUserContact = async (req, res, next) => {
     const { contactId } = req.params;
     const { id } = req.user;
 
+
+
+    console.log(contactId, 'contactId');
+
     const findcontact = await prisma.contacts.findUnique({
       where: {
         id: contactId,
@@ -296,7 +199,12 @@ const saveFavoriteUserContact = async (req, res, next) => {
     });
 
     if (alreayexistinfavotite) {
-      throw new ConflictError("contact already in favorite")
+      // throw new ConflictError("contact already in favorite")
+
+      return res.status(200).json({
+        success: false,
+        message: "contact already in favorite",
+      });
     }
 
     const savecontactinfavorite = await prisma.favoriteContact.create({
@@ -307,7 +215,12 @@ const saveFavoriteUserContact = async (req, res, next) => {
     });
 
     if (!savecontactinfavorite) {
-      throw new ValidationError("contact not saved in favorite list")
+      // throw new ValidationError("contact not saved in favorite list")
+
+      return res.status(200).json({
+        success: false,
+        message: "contact not saved in favorite list",
+      });
     }
 
     handlerOk(res, 200, savecontactinfavorite, 'contact save in favorite list')

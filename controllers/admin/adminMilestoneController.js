@@ -45,7 +45,12 @@ const showMilestoneCategory = async (req, res, next) => {
     });
 
     if (findmilestonecategory.length === 0) {
-      throw new NotFoundError("milestone category not found")
+      // throw new NotFoundError("milestone category not found")
+
+      return res.status(200).json({
+        success: false,
+        message: "milestone category not found",
+      });
     }
 
     handlerOk(res, 200, findmilestonecategory, "milestone category found successfully");

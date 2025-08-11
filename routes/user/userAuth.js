@@ -97,6 +97,13 @@ userAuthRouter.delete(
   userAuthController.deleteAccount
 );
 
+userAuthRouter.get(
+  "/getMe",
+  limiter,
+  verifyUserToken,
+  userAuthController.getMe
+);
+
 
 
 

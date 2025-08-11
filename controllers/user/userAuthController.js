@@ -653,6 +653,19 @@ const createdProfile = async (req, res, next) => {
   }
 };
 
+const getMe = async (req, res, next) => {
+  try {
+    const { id } = req.user;
+
+    const user = await prisma.user.findUnique({
+      where: { id }
+    });
+
+    handlerOk(res, 200, user, 'user found successfully')
+  } catch (error) {
+    next(error)
+  }
+}
 
 
 module.exports = {
@@ -667,6 +680,7 @@ module.exports = {
   forgetPassword,
   resetPassword,
   resendOtp,
-  createdProfile
+  createdProfile,
+  getMe
 
 }

@@ -369,7 +369,11 @@ const todayReminders = async (req, res, next) => {
     });
 
     if (findtodayreminder.length === 0) {
-      throw new NotFoundError("reminder not found")
+      // throw new NotFoundError("reminder not found")
+      return res.status(200).json({
+        success: false,
+        message: "reminder not found",
+      });
     }
 
     handlerOk(res, 200, findtodayreminder, "reminder found successfully");
