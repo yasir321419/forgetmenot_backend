@@ -9,101 +9,101 @@ const { adminCreateStickerMessageCategorySchema, adminUpdateStickerMessageCatego
 const handleMultiPartData = require("../../middleware/multiPartData");
 const isFileExists = require("../../middleware/isFileExist");
 
-adminLibraryRouter.post(
-  "/createStickerMessageCategory",
-  limiter,
-  verifyAdminToken,
-  validateRequest(adminCreateStickerMessageCategorySchema),
-  adminLibraryController.createStickerMessageCategory
-);
+// adminLibraryRouter.post(
+//   "/createStickerMessageCategory",
+//   limiter,
+//   verifyAdminToken,
+//   validateRequest(adminCreateStickerMessageCategorySchema),
+//   adminLibraryController.createStickerMessageCategory
+// );
 
-adminLibraryRouter.get(
-  "/showStickerMessageCategories",
-  limiter,
-  verifyAdminToken,
-  adminLibraryController.showStickerMessageCategories
-);
+// adminLibraryRouter.get(
+//   "/showStickerMessageCategories",
+//   limiter,
+//   verifyAdminToken,
+//   adminLibraryController.showStickerMessageCategories
+// );
 
-adminLibraryRouter.put(
-  "/updateStickerMessageCategory/:categoryId",
-  limiter,
-  verifyAdminToken,
-  validateRequest(adminUpdateStickerMessageCategorySchema),
-  adminLibraryController.updateStickerMessageCategory
-);
+// adminLibraryRouter.put(
+//   "/updateStickerMessageCategory/:categoryId",
+//   limiter,
+//   verifyAdminToken,
+//   validateRequest(adminUpdateStickerMessageCategorySchema),
+//   adminLibraryController.updateStickerMessageCategory
+// );
 
-adminLibraryRouter.delete(
-  "/deleteStickerMessageCategory/:categoryId",
-  limiter,
-  verifyAdminToken,
-  validateRequest(adminDeleteStickerMessageCategorySchema),
-  adminLibraryController.deleteStickerMessageCategory
-);
+// adminLibraryRouter.delete(
+//   "/deleteStickerMessageCategory/:categoryId",
+//   limiter,
+//   verifyAdminToken,
+//   validateRequest(adminDeleteStickerMessageCategorySchema),
+//   adminLibraryController.deleteStickerMessageCategory
+// );
 
-adminLibraryRouter.post(
-  "/createMessage/:categoryId",
-  limiter,
-  verifyAdminToken,
-  validateRequest(adminCreateMessageSchema),
-  adminLibraryController.createMessage
-);
+// adminLibraryRouter.post(
+//   "/createMessage/:categoryId",
+//   limiter,
+//   verifyAdminToken,
+//   validateRequest(adminCreateMessageSchema),
+//   adminLibraryController.createMessage
+// );
 
-adminLibraryRouter.get(
-  "/showMessages",
-  limiter,
-  verifyAdminToken,
-  adminLibraryController.showMessages
-);
+// adminLibraryRouter.get(
+//   "/showMessages",
+//   limiter,
+//   verifyAdminToken,
+//   adminLibraryController.showMessages
+// );
 
-adminLibraryRouter.put(
-  "/updateMessage/:messageId",
-  limiter,
-  verifyAdminToken,
-  validateRequest(adminUpdateMessageSchema),
-  adminLibraryController.updateMessage
-);
+// adminLibraryRouter.put(
+//   "/updateMessage/:messageId",
+//   limiter,
+//   verifyAdminToken,
+//   validateRequest(adminUpdateMessageSchema),
+//   adminLibraryController.updateMessage
+// );
 
-adminLibraryRouter.delete(
-  "/deleteMessage/:messageId",
-  limiter,
-  verifyAdminToken,
-  validateRequest(adminDeteteMessageSchema),
-  adminLibraryController.deleteMessage
-);
+// adminLibraryRouter.delete(
+//   "/deleteMessage/:messageId",
+//   limiter,
+//   verifyAdminToken,
+//   validateRequest(adminDeteteMessageSchema),
+//   adminLibraryController.deleteMessage
+// );
 
-adminLibraryRouter.post(
-  "/createSticker/:categoryId",
-  limiter,
-  verifyAdminToken,
-  validateRequest(adminCreateStickerSchema),
-  handleMultiPartData.single("image"),
-  isFileExists("sticker image required"),
-  adminLibraryController.createSticker
-);
+// adminLibraryRouter.post(
+//   "/createSticker/:categoryId",
+//   limiter,
+//   verifyAdminToken,
+//   validateRequest(adminCreateStickerSchema),
+//   handleMultiPartData.single("image"),
+//   isFileExists("sticker image required"),
+//   adminLibraryController.createSticker
+// );
 
-adminLibraryRouter.get(
-  "/showStickers",
-  limiter,
-  verifyAdminToken,
-  adminLibraryController.showStickers
-);
+// adminLibraryRouter.get(
+//   "/showStickers",
+//   limiter,
+//   verifyAdminToken,
+//   adminLibraryController.showStickers
+// );
 
-adminLibraryRouter.put(
-  "/updateSticker/:stickerId",
-  limiter,
-  verifyAdminToken,
-  validateRequest(adminUpdateStickerSchema),
-  handleMultiPartData.single("image"),
-  isFileExists("sticker image required"),
-  adminLibraryController.updateSticker
-);
+// adminLibraryRouter.put(
+//   "/updateSticker/:stickerId",
+//   limiter,
+//   verifyAdminToken,
+//   validateRequest(adminUpdateStickerSchema),
+//   handleMultiPartData.single("image"),
+//   isFileExists("sticker image required"),
+//   adminLibraryController.updateSticker
+// );
 
-adminLibraryRouter.delete(
-  "/deleteSticker/:stickerId",
-  limiter,
-  verifyAdminToken,
-  validateRequest(adminUpdateStickerSchema),
-  adminLibraryController.deleteSticker
-);
+// adminLibraryRouter.delete(
+//   "/deleteSticker/:stickerId",
+//   limiter,
+//   verifyAdminToken,
+//   validateRequest(adminUpdateStickerSchema),
+//   adminLibraryController.deleteSticker
+// );
 
 module.exports = adminLibraryRouter;

@@ -12,6 +12,10 @@ const cron = require("node-cron");
 const checkAndSendReminderNotifications = require('./utils/sendReminderNotification');
 const adminSeed = require('./seeder/adminseed');
 const messageSeed = require('./seeder/messageseed');
+const mileStoneCategory = require('./seeder/milestonecategoryseed');
+const otherMileStoneCategory = require('./seeder/othermilestonecatergoryseed');
+const reminderCategory = require('./seeder/remindercategoryseed');
+const stickerSeed = require('./seeder/stickerseed');
 
 require("dotenv").config();
 
@@ -35,6 +39,14 @@ dbConnect();
 adminSeed();
 
 messageSeed();
+
+mileStoneCategory();
+
+otherMileStoneCategory();
+
+reminderCategory();
+
+stickerSeed();
 
 
 cron.schedule("* * * * *", async () => {

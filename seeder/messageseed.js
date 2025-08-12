@@ -1,3 +1,4 @@
+
 const prisma = require("../config/prismaConfig");
 
 const messageSeed = async () => {
@@ -33,45 +34,113 @@ const messageSeed = async () => {
       "Grief is personal, but it doesn’t have to be lonely."
     ];
 
-    // Get the categories
-    const categories = await prisma.messageStickerCategory.findMany();
+    // Categories to create (hardcoded list, you can add more categories as needed)
+    const categoriesToCreate = [
+      { name: 'Wedding' },
+      { name: 'Birthday' },
+      { name: 'All' },
+      { name: 'Holiday' },
+      { name: 'Death Anninversary' },
+      { name: 'Retirement' },
+      { name: 'Fundraiser' }
+    ];
 
-    // Ensure only 25 messages are used (already done)
-    const messagesToAdd = messages.slice(0, 25);
+    // Fetch the admin dynamically by email
+    const email = "admin@example.com"; // Replace this with the actual admin email
+    const admin = await prisma.admin.findUnique({
+      where: {
+        email: email, // Fetching admin by email
+      },
+    });
 
-    // Calculate the number of messages to distribute across categories
-    const messagesPerCategory = Math.floor(messagesToAdd.length / categories.length);
-    const remainder = messagesToAdd.length % categories.length;
+    if (!admin) {
+      console.log(`Admin with email '${email}' not found!`);
+      return; // Stop execution if admin is not found
+    }
 
-    let messageIndex = 0;
+    const adminId = admin.id; // Get the admin's ID
 
-    // Loop through each category
-    for (let i = 0; i < categories.length; i++) {
-      // Calculate how many messages to assign to this category
-      const messagesForThisCategory = i < remainder ? messagesPerCategory + 1 : messagesPerCategory;
+    // Loop through each category to create it if it doesn't exist
+    for (const categoryData of categoriesToCreate) {
+      const existingCategory = await prisma.messageStickerCategory.findFirst({
+        where: {
+          name: categoryData.name, // Searching by name
+        },
+      });
 
-      for (let j = 0; j < messagesForThisCategory; j++) {
-        if (messageIndex >= messagesToAdd.length) break;
-
-        const messageTextNormalized = messagesToAdd[messageIndex].trim().toLowerCase();
-
-        // Perform the upsert operation with a unique check for each category and message
-        await prisma.message.upsert({
-          where: {
-            text_categoryId: {
-              text: messageTextNormalized,  // Unique check for text
-              categoryId: categories[i].id, // Unique check for categoryId
-            },
-          },
-          update: {},  // No update if the message exists
-          create: {
-            text: messageTextNormalized,
-            categoryId: categories[i].id,
-            createdById: categories[i].createdById,
+      // Create the category if it does not exist
+      if (!existingCategory) {
+        await prisma.messageStickerCategory.create({
+          data: {
+            name: categoryData.name,
+            createdById: adminId,  // Use the dynamically fetched adminId
           },
         });
 
-        messageIndex++; // Move to the next message
+        console.log(`Category '${categoryData.name}' created.`);
+      }
+    }
+
+    // Get all categories after creation
+    const categories = await prisma.messageStickerCategory.findMany();
+
+    // Ensure only 25 messages are used
+    const messagesToAdd = messages.slice(0, 25);
+
+    // Find the "ALL" category to add all messages
+    const allCategory = categories.find(category => category.name === 'All');
+
+    // Loop through each category
+    for (let i = 0; i < categories.length; i++) {
+      // For "ALL" category, add all 25 messages
+      if (categories[i].name === 'All') {
+        for (let j = 0; j < messagesToAdd.length; j++) {
+          const messageTextNormalized = messagesToAdd[j].trim().toLowerCase();
+
+          // Upsert operation for "ALL" category
+          await prisma.message.upsert({
+            where: {
+              text_categoryId: {
+                text: messageTextNormalized,
+                categoryId: categories[i].id, // Unique check for ALL category
+              },
+            },
+            update: {},
+            create: {
+              text: messageTextNormalized,
+              categoryId: categories[i].id,
+              createdById: adminId, // Set createdById dynamically
+            },
+          });
+        }
+      } else {
+        // For other categories, distribute messages equally
+        const messagesForCategory = Math.floor(messagesToAdd.length / (categories.length - 1));  // Exclude "All" category
+        let messageIndex = 0;
+
+        // Loop to assign remaining messages to other categories
+        for (let j = 0; j < messagesForCategory; j++) {
+          if (messageIndex >= messagesToAdd.length) break;
+
+          const messageTextNormalized = messagesToAdd[messageIndex].trim().toLowerCase();
+
+          await prisma.message.upsert({
+            where: {
+              text_categoryId: {
+                text: messageTextNormalized,
+                categoryId: categories[i].id, // Unique check for current category
+              },
+            },
+            update: {},
+            create: {
+              text: messageTextNormalized,
+              categoryId: categories[i].id,
+              createdById: adminId, // Set createdById dynamically
+            },
+          });
+
+          messageIndex++; // Move to the next message
+        }
       }
     }
 
@@ -81,3 +150,5 @@ const messageSeed = async () => {
 };
 
 module.exports = messageSeed;
+
+

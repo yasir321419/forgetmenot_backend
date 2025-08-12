@@ -47,123 +47,233 @@ const showReminderCategory = async (req, res, next) => {
   }
 }
 
+// const createMilestone = async (req, res, next) => {
+//   try {
+//     const { hostName, phoneNumber, message, title, date, categoryId, messageId, stickerId, reminderId, otherOptionId } = req.body;
+//     const { id } = req.user;
+
+
+//     // await checkUserSubscription(id, "your package has expired Upgrade your plan to create the milestone");
+
+//     // 🔍 Validate usage limits based on plan
+//     // await validateFreePlanUsage(id, messageIds, stickerIds); // ✅ Use your validator here
+
+
+
+//     const findcategory = await prisma.mileStoneCategory.findUnique({
+//       where: {
+//         id: categoryId,
+//       }
+//     });
+
+//     if (!findcategory) {
+//       throw new NotFoundError("milestone category not found")
+//     }
+
+//     const findothercategory = await prisma.otherOptionRemiderCategory.findUnique({
+//       where: {
+//         id: otherOptionId,
+//       }
+//     })
+
+//     if (!findothercategory) {
+//       throw new NotFoundError("other milestone category not found")
+//     }
+
+//     const findremindercategory = await prisma.remiderCategory.findUnique({
+//       where: {
+//         id: reminderId,
+//       }
+//     });
+
+//     if (!findremindercategory) {
+//       throw new NotFoundError("reminder milestone category not found")
+//     }
+
+//     const findmessage = await prisma.message.findMany({
+//       where: {
+//         id: messageId
+//         // {
+//         //   in: messageId
+//         // },
+//       }
+//     });
+
+//     if (!findmessage) {
+//       throw new NotFoundError("message not found")
+//     }
+
+//     const findsticker = await prisma.sticker.findMany({
+//       where: {
+//         id: stickerId
+//         // {
+//         //   in: stickerId
+//         // },
+//       }
+//     });
+
+//     if (!findsticker) {
+//       throw new NotFoundError("sticker not found")
+//     }
+
+//     const parsedDate = new Date(date);
+
+
+//     const existingmilestone = await prisma.milestone.findFirst({
+//       where: {
+//         createdById: id,
+//         date: parsedDate,
+//       }
+//     });
+
+//     if (existingmilestone) {
+//       throw new ConflictError("milestone already exists")
+//     }
+
+//     const createmilestone = await prisma.milestone.create({
+//       data: {
+//         title,
+//         categoryId: findcategory.id,
+//         reminderId: findremindercategory.id,
+//         stickerId: findsticker.id,
+//         messageId: findmessage.id,
+//         date: parsedDate,
+//         hostname: hostName,
+//         Phonenumber: phoneNumber,
+//         hostmessage: message,
+//         createdById: id
+//       },
+//       include: {
+//         category: true,
+//         reminder: true,
+//         sticker: true,
+//         message: true
+//       }
+//     });
+
+//     if (!createmilestone) {
+//       throw new ValidationError("milestone not create")
+//     }
+
+//     handlerOk(res, 200, createmilestone, "milestone created successfully")
+
+//   } catch (error) {
+//     next(error)
+//   }
+// }
+
+
 const createMilestone = async (req, res, next) => {
   try {
     const { hostName, phoneNumber, message, title, date, categoryId, messageId, stickerId, reminderId, otherOptionId } = req.body;
     const { id } = req.user;
 
-
-    const toArray = (val) => Array.isArray(val) ? val : [val];
-
-    const messageIds = toArray(messageId);
-    const stickerIds = toArray(stickerId);
-
-    await checkUserSubscription(id, "your package has expired Upgrade your plan to create the milestone");
-
-    // 🔍 Validate usage limits based on plan
-    await validateFreePlanUsage(id, messageIds, stickerIds); // ✅ Use your validator here
-
-
-
+    // Validate milestone category
     const findcategory = await prisma.mileStoneCategory.findUnique({
       where: {
         id: categoryId,
-      }
+      },
     });
 
     if (!findcategory) {
-      throw new NotFoundError("milestone category not found")
+      throw new NotFoundError("milestone category not found");
     }
 
+    // Validate other milestone category
     const findothercategory = await prisma.otherOptionRemiderCategory.findUnique({
       where: {
         id: otherOptionId,
-      }
-    })
+      },
+    });
 
     if (!findothercategory) {
-      throw new NotFoundError("other milestone category not found")
+      throw new NotFoundError("other milestone category not found");
     }
 
+    // Validate reminder category
     const findremindercategory = await prisma.remiderCategory.findUnique({
       where: {
         id: reminderId,
-      }
+      },
     });
 
     if (!findremindercategory) {
-      throw new NotFoundError("reminder milestone category not found")
+      throw new NotFoundError("reminder milestone category not found");
     }
 
-    const findmessage = await prisma.message.findMany({
-      where: {
-        id: {
-          in: messageIds
+    // Validate message
+    let findmessage = null;
+    if (messageId) {
+      findmessage = await prisma.message.findUnique({
+        where: {
+          id: messageId,
         },
-      }
-    });
+      });
 
-    if (!findmessage) {
-      throw new NotFoundError("message not found")
+      if (!findmessage) {
+        throw new NotFoundError("message not found");
+      }
     }
 
-    const findsticker = await prisma.sticker.findMany({
-      where: {
-        id: {
-          in: stickerIds
+    // Validate sticker
+    let findsticker = null;
+    if (stickerId) {
+      findsticker = await prisma.sticker.findUnique({
+        where: {
+          id: stickerId,
         },
-      }
-    });
+      });
 
-    if (!findsticker) {
-      throw new NotFoundError("sticker not found")
+      if (!findsticker) {
+        throw new NotFoundError("sticker not found");
+      }
     }
 
+    // Check if the milestone already exists for the creator and date
     const parsedDate = new Date(date);
-
-
     const existingmilestone = await prisma.milestone.findFirst({
       where: {
         createdById: id,
         date: parsedDate,
-      }
+      },
     });
 
     if (existingmilestone) {
-      throw new ConflictError("milestone already exists")
+      throw new ConflictError("milestone already exists");
     }
 
+    // Create milestone
     const createmilestone = await prisma.milestone.create({
       data: {
         title,
         categoryId: findcategory.id,
         reminderId: findremindercategory.id,
-        stickerId: findsticker.id,
-        messageId: findmessage.id,
+        stickerId: findsticker ? findsticker.id : null, // Set stickerId if it exists
+        messageId: findmessage ? findmessage.id : null, // Set messageId if it exists
         date: parsedDate,
         hostname: hostName,
         Phonenumber: phoneNumber,
         hostmessage: message,
-        createdById: id
+        createdById: id,
       },
       include: {
         category: true,
         reminder: true,
         sticker: true,
-        message: true
-      }
+        message: true,
+      },
     });
 
     if (!createmilestone) {
-      throw new ValidationError("milestone not create")
+      throw new ValidationError("milestone not created");
     }
 
-    handlerOk(res, 200, createmilestone, "milestone created successfully")
-
+    handlerOk(res, 200, createmilestone, "milestone created successfully");
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
+
 
 const showAllMilestone = async (req, res, next) => {
   try {
@@ -191,6 +301,119 @@ const showAllMilestone = async (req, res, next) => {
   }
 }
 
+// const editMilestone = async (req, res, next) => {
+//   try {
+//     const { milestoneId } = req.params;
+//     const { hostName, phoneNumber, message, title, date, categoryId, messageId, stickerId, reminderId, otherOptionId } = req.body;
+
+//     const findmilestone = await prisma.milestone.findUnique({
+//       where: {
+//         id: milestoneId
+//       }
+//     });
+
+//     if (!findmilestone) {
+//       throw new ValidationError("milestone id not found")
+//     }
+
+//     const findcategory = await prisma.mileStoneCategory.findUnique({
+//       where: {
+//         id: categoryId,
+//       }
+//     });
+
+//     if (!findcategory) {
+//       throw new NotFoundError("milestone category not found")
+//     }
+
+//     const findothercategory = await prisma.otherOptionRemiderCategory.findUnique({
+//       where: {
+//         id: otherOptionId,
+//       }
+//     })
+
+//     if (!findothercategory) {
+//       throw new NotFoundError("other milestone category not found")
+//     }
+
+//     const findremindercategory = await prisma.remiderCategory.findUnique({
+//       where: {
+//         id: reminderId,
+//       }
+//     });
+
+//     if (!findremindercategory) {
+//       throw new NotFoundError("reminder milestone category not found")
+//     }
+
+//     const findmessage = await prisma.message.findUnique({
+//       where: {
+//         id: messageId,
+//       }
+//     });
+
+//     if (!findmessage) {
+//       throw new NotFoundError("message not found")
+//     }
+
+//     const findsticker = await prisma.sticker.findUnique({
+//       where: {
+//         id: stickerId,
+//       }
+//     });
+
+//     if (!findsticker) {
+//       throw new NotFoundError("sticker not found")
+//     }
+
+//     const parsedDate = new Date(date);
+
+//     const updateObj = {};
+
+//     if (hostName) {
+//       updateObj.hostname = hostName;
+//     }
+
+//     if (phoneNumber) {
+//       updateObj.Phonenumber = phoneNumber;
+//     }
+
+//     if (message) {
+//       updateObj.hostmessage = message;
+//     }
+
+//     if (title) {
+//       updateObj.title = title;
+//     }
+
+//     if (date) {
+//       updateObj.date = parsedDate;
+//     }
+
+//     const updatemilestone = await prisma.milestone.update({
+//       where: {
+//         id: findmilestone.id,
+//       },
+//       data: updateObj,
+//       include: {
+//         category: true,
+//         reminder: true,
+//         sticker: true,
+//         message: true
+//       }
+//     });
+
+//     if (!updatemilestone) {
+//       throw new ValidationError("milestone not update")
+//     }
+
+//     handlerOk(res, 200, updatemilestone, "milestone updated successfully")
+
+//   } catch (error) {
+//     next(error)
+//   }
+// }
+
 const editMilestone = async (req, res, next) => {
   try {
     const { milestoneId } = req.params;
@@ -198,62 +421,65 @@ const editMilestone = async (req, res, next) => {
 
     const findmilestone = await prisma.milestone.findUnique({
       where: {
-        id: parseInt(milestoneId)
+        id: milestoneId
       }
     });
 
     if (!findmilestone) {
-      throw new ValidationError("milestone id not found")
+      throw new ValidationError("milestone id not found");
     }
 
     const findcategory = await prisma.mileStoneCategory.findUnique({
       where: {
-        id: parseInt(categoryId),
+        id: categoryId,
       }
     });
 
     if (!findcategory) {
-      throw new NotFoundError("milestone category not found")
+      throw new NotFoundError("milestone category not found");
     }
 
     const findothercategory = await prisma.otherOptionRemiderCategory.findUnique({
       where: {
-        id: parseInt(otherOptionId),
+        id: otherOptionId,
       }
-    })
+    });
 
     if (!findothercategory) {
-      throw new NotFoundError("other milestone category not found")
+      throw new NotFoundError("other milestone category not found");
     }
 
     const findremindercategory = await prisma.remiderCategory.findUnique({
       where: {
-        id: parseInt(reminderId),
+        id: reminderId,
       }
     });
 
     if (!findremindercategory) {
-      throw new NotFoundError("reminder milestone category not found")
+      throw new NotFoundError("reminder milestone category not found");
     }
 
     const findmessage = await prisma.message.findUnique({
       where: {
-        id: parseInt(messageId),
+        id: messageId,
       }
     });
 
     if (!findmessage) {
-      throw new NotFoundError("message not found")
+      throw new NotFoundError("message not found");
     }
 
-    const findsticker = await prisma.sticker.findUnique({
-      where: {
-        id: parseInt(stickerId),
-      }
-    });
+    let findsticker = null;
+    if (stickerId) {
+      findsticker = await prisma.sticker.findUnique({
+        where: {
+          id: stickerId,
+        }
+      });
 
-    if (!findsticker) {
-      throw new NotFoundError("sticker not found")
+      if (!findsticker) {
+        throw new NotFoundError("sticker not found");
+      }
     }
 
     const parsedDate = new Date(date);
@@ -280,6 +506,10 @@ const editMilestone = async (req, res, next) => {
       updateObj.date = parsedDate;
     }
 
+    if (stickerId === "") {
+      updateObj.stickerId = null; // Set stickerId to null if empty string
+    }
+
     const updatemilestone = await prisma.milestone.update({
       where: {
         id: findmilestone.id,
@@ -294,15 +524,16 @@ const editMilestone = async (req, res, next) => {
     });
 
     if (!updatemilestone) {
-      throw new ValidationError("milestone not update")
+      throw new ValidationError("milestone not updated");
     }
 
-    handlerOk(res, 200, updatemilestone, "milestone updated successfully")
+    handlerOk(res, 200, updatemilestone, "milestone updated successfully");
 
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
+
 
 const sendMilestoneToNumber = async (req, res, next) => {
   try {

@@ -14,12 +14,10 @@ const userCreateMilestoneSchema = Joi.object({
     categoryId: Joi.string().required(),
     messageId: Joi.alternatives().try(
       Joi.string(),
-      Joi.array().items(Joi.string())
-    ).required(),
-    stickerId: Joi.alternatives().try(
-      Joi.string(),
-      Joi.array().items(Joi.string())
-    ).required(),
+    ).optional(),
+    stickerId:
+      Joi.string().optional(),
+
     reminderId: Joi.string().required(),
     otherOptionId: Joi.string().required()
 
@@ -29,7 +27,6 @@ const userCreateMilestoneSchema = Joi.object({
 const userEditMilestoneSchema = Joi.object({
   query: Joi.object({}),
   params: Joi.object({
-
     milestoneId: Joi.string().required()
   }),
   body: Joi.object({
@@ -38,20 +35,14 @@ const userEditMilestoneSchema = Joi.object({
     message: Joi.string().optional(),
     title: Joi.string().optional(),
     date: Joi.date().optional(),
-    categoryId: Joi.string().optional(),
-    messageId: Joi.alternatives().try(
-      Joi.string(),
-      Joi.array().items(Joi.string())
-    ).required(),
-    stickerId: Joi.alternatives().try(
-      Joi.string(),
-      Joi.array().items(Joi.string())
-    ).required(),
-    reminderId: Joi.string().optional(),
+    categoryId: Joi.string().allow(null, '').optional(),
+    messageId: Joi.string().allow(null, '').optional(),
+    stickerId: Joi.string().allow(null, '').optional(), // Allow null or empty string for stickerId
+    reminderId: Joi.string().allow(null, '').optional(),
     otherOptionId: Joi.string().optional()
-
   }),
 });
+
 
 const userShowMilestoneSchemaByDayWeekMonthYear = Joi.object({
   query: Joi.object({
