@@ -559,9 +559,9 @@ const sendMilestoneToNumber = async (req, res, next) => {
       }
     });
 
-    if (!findcontact) {
-      throw new NotFoundError("contact not found")
-    }
+    // if (!findcontact) {
+    //   throw new NotFoundError("contact not found")
+    // }
 
     await send_message({ type: "milestone", recipient: phoneNumber, value: findmilestone });
 

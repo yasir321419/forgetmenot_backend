@@ -12,7 +12,7 @@ const isFileExists = require("../../middleware/isFileExist");
 
 userContactRouter.post(
   "/saveUserContacts",
-  limiter,
+  // limiter,
   verifyUserToken,
   validateRequest(saveUserContantsSchema),
   handleMultiPartData.any("image"),
@@ -21,14 +21,14 @@ userContactRouter.post(
 
 userContactRouter.get(
   "/showUserContacts",
-  limiter,
+  // limiter,
   verifyUserToken,
   userContactController.showUserContacts
 );
 
 userContactRouter.put(
   "/editUserContact/:contactId",
-  limiter,
+  // limiter,
   verifyUserToken,
   validateRequest(editUserContantsSchema),
   handleMultiPartData.single("image"),
@@ -37,7 +37,7 @@ userContactRouter.put(
 
 userContactRouter.delete(
   "/deleteUserContact/:contactId",
-  limiter,
+  // limiter,
   verifyUserToken,
   validateRequest(deleteUserContantsSchema),
   userContactController.deleteUserContact
@@ -45,7 +45,7 @@ userContactRouter.delete(
 
 userContactRouter.post(
   "/saveFavoriteUserContact/:contactId",
-  limiter,
+  // limiter,
   verifyUserToken,
   validateRequest(saveUserContantsInFavoriteSchema),
   userContactController.saveFavoriteUserContact
@@ -53,7 +53,7 @@ userContactRouter.post(
 
 userContactRouter.get(
   "/showFavoriteUserContacts",
-  limiter,
+  // limiter,
   verifyUserToken,
   userContactController.showFavoriteUserContacts
 );

@@ -10,35 +10,35 @@ const handleMultiPartData = require("../../middleware/multiPartData");
 
 userAuthRouter.post(
   "/SignUp",
-  limiter,
+  // limiter,
   validateRequest(userRegisterSchema),
   userAuthController.SignUp
 );
 
 userAuthRouter.post(
   "/VerifyOtp",
-  limiter,
+  // limiter,
   validateRequest(userVerifyOtpSchema),
   userAuthController.VerifyOtp
 );
 
 userAuthRouter.post(
   "/forgetPassword",
-  limiter,
+  // limiter,
   validateRequest(userForgetPasswordSchema),
   userAuthController.forgetPassword
 );
 
 userAuthRouter.post(
   "/resendOtp",
-  limiter,
+  // limiter,
   validateRequest(userResendOtpSchema),
   userAuthController.resendOtp
 );
 
 userAuthRouter.post(
   "/createdProfile",
-  limiter,
+  // limiter,
   verifyUserToken,
   validateRequest(userCreatedProfileSchema),
   userAuthController.createdProfile
@@ -46,14 +46,14 @@ userAuthRouter.post(
 
 userAuthRouter.post(
   "/Login",
-  limiter,
+  // limiter,
   validateRequest(userLoginSchema),
   userAuthController.Login
 );
 
 userAuthRouter.post(
   "/resetPassword",
-  limiter,
+  // limiter,
   verifyUserToken,
   validateRequest(resetPasswordSchema),
   userAuthController.resetPassword
@@ -61,7 +61,7 @@ userAuthRouter.post(
 
 userAuthRouter.post(
   "/changePassword",
-  limiter,
+  // limiter,
   verifyUserToken,
   validateRequest(changePasswordSchema),
   userAuthController.changePassword
@@ -69,7 +69,7 @@ userAuthRouter.post(
 
 userAuthRouter.put(
   "/editProfile",
-  limiter,
+  // limiter,
   verifyUserToken,
   validateRequest(editProfileSchema),
   handleMultiPartData.single("image"),
@@ -78,28 +78,28 @@ userAuthRouter.put(
 
 userAuthRouter.post(
   "/socialLogin",
-  limiter,
+  // limiter,
   validateRequest(socialLoginSchema),
   userAuthController.socialLogin
 );
 
 userAuthRouter.post(
   "/LogOut",
-  limiter,
+  // limiter,
   verifyUserToken,
   userAuthController.LogOut
 );
 
 userAuthRouter.delete(
   "/deleteAccount",
-  limiter,
+  // limiter,
   verifyUserToken,
   userAuthController.deleteAccount
 );
 
 userAuthRouter.get(
   "/getMe",
-  limiter,
+  // limiter,
   verifyUserToken,
   userAuthController.getMe
 );

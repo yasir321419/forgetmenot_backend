@@ -9,35 +9,35 @@ const { verifyAdminToken } = require("../../middleware/auth");
 
 adminContentRouter.get(
   "/showAllUsers",
-  limiter,
+  // limiter,
   verifyAdminToken,
   adminContentController.showAllUsers
 );
 
 adminContentRouter.get(
   "/countUsers",
-  limiter,
+  // limiter,
   verifyAdminToken,
   adminContentController.countUsers
 );
 
 adminContentRouter.get(
   "/androidUsers",
-  limiter,
+  // limiter,
   verifyAdminToken,
   adminContentController.androidUsers
 );
 
 adminContentRouter.get(
   "/iosUsers",
-  limiter,
+  // limiter,
   verifyAdminToken,
   adminContentController.iosUsers
 );
 
 adminContentRouter.post(
   "/createPrivacyPolicy",
-  limiter,
+  // limiter,
   verifyAdminToken,
   validateRequest(adminCreatePrivacyPolicySchema),
   adminContentController.createPrivacyPolicy
@@ -45,14 +45,14 @@ adminContentRouter.post(
 
 adminContentRouter.get(
   "/showPrivacyPolicy",
-  limiter,
+  // limiter,
   verifyAdminToken,
   adminContentController.showPrivacyPolicy
 );
 
 adminContentRouter.put(
   "/updatePrivacyPolicy/:privacyId",
-  limiter,
+  // limiter,
   verifyAdminToken,
   validateRequest(adminUpdatePrivacyPolicySchema),
   adminContentController.updatePrivacyPolicy
@@ -60,7 +60,7 @@ adminContentRouter.put(
 
 adminContentRouter.post(
   "/createTermsCondition",
-  limiter,
+  // limiter,
   verifyAdminToken,
   validateRequest(adminCreateTermsConditionSchema),
   adminContentController.createTermsCondition
@@ -68,14 +68,14 @@ adminContentRouter.post(
 
 adminContentRouter.get(
   "/showTermsCondition",
-  limiter,
+  // limiter,
   verifyAdminToken,
   adminContentController.showTermsCondition
 );
 
 adminContentRouter.put(
   "/updateTermsCondition/:termsId",
-  limiter,
+  // limiter,
   verifyAdminToken,
   validateRequest(adminUpdateTermsConditionSchema),
   adminContentController.updateTermsCondition
@@ -83,7 +83,7 @@ adminContentRouter.put(
 
 adminContentRouter.post(
   "/createAboutApp",
-  limiter,
+  // limiter,
   verifyAdminToken,
   validateRequest(adminCreateAboutAppSchema),
   adminContentController.createAboutApp
@@ -91,14 +91,14 @@ adminContentRouter.post(
 
 adminContentRouter.get(
   "/showAboutApp",
-  limiter,
+  // limiter,
   verifyAdminToken,
   adminContentController.showAboutApp
 );
 
 adminContentRouter.put(
   "/updateAboutApp/:aboutappId",
-  limiter,
+  // limiter,
   verifyAdminToken,
   validateRequest(adminUpdateAboutAppSchema),
   adminContentController.updateAboutApp
@@ -106,7 +106,7 @@ adminContentRouter.put(
 
 adminContentRouter.get(
   "/showUsersFeedBack",
-  limiter,
+  // limiter,
   verifyAdminToken,
   adminContentController.showUsersFeedBack
 );

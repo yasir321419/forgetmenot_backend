@@ -9,28 +9,28 @@ const { userCreateMilestoneSchema, userEditMilestoneSchema, userShowMilestoneSch
 
 userMilestoneRouter.get(
   "/showMileStoneCategory",
-  limiter,
+  // limiter,
   verifyUserToken,
   userMilestoneController.showMileStoneCategory
 );
 
 userMilestoneRouter.get(
   "/showOtherMilestoneCategory",
-  limiter,
+  // limiter,
   verifyUserToken,
   userMilestoneController.showOtherMilestoneCategory
 );
 
 userMilestoneRouter.get(
   "/showReminderCategory",
-  limiter,
+  // limiter,
   verifyUserToken,
   userMilestoneController.showReminderCategory
 );
 
 userMilestoneRouter.post(
   "/createMilestone",
-  limiter,
+  // limiter,
   verifyUserToken,
   validateRequest(userCreateMilestoneSchema),
   userMilestoneController.createMilestone
@@ -38,14 +38,14 @@ userMilestoneRouter.post(
 
 userMilestoneRouter.get(
   "/showAllMilestone",
-  limiter,
+  // limiter,
   verifyUserToken,
   userMilestoneController.showAllMilestone
 );
 
 userMilestoneRouter.put(
   "/editMilestone/:milestoneId",
-  limiter,
+  // limiter,
   verifyUserToken,
   validateRequest(userEditMilestoneSchema),
   userMilestoneController.editMilestone
@@ -53,7 +53,7 @@ userMilestoneRouter.put(
 
 userMilestoneRouter.post(
   "/sendMilestoneToNumber/:milestoneId",
-  limiter,
+  // limiter,
   verifyUserToken,
   validateRequest(userSendMilestoneToNumberSchema),
   userMilestoneController.sendMilestoneToNumber
@@ -61,14 +61,14 @@ userMilestoneRouter.post(
 
 userMilestoneRouter.get(
   "/todayReminders",
-  limiter,
+  // limiter,
   verifyUserToken,
   userMilestoneController.todayReminders
 );
 
 userMilestoneRouter.get(
   "/showMilestoneByDayWeekMonthYearly",
-  limiter,
+  // limiter,
   verifyUserToken,
   validateRequest(userShowMilestoneSchemaByDayWeekMonthYear),
   userMilestoneController.showMilestoneByDayWeekMonthYearly
