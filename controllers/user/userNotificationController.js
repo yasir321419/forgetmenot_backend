@@ -6,6 +6,19 @@ const showAllNotifications = async (req, res, next) => {
   try {
     const { id } = req.user;
 
+    const updatenotification = await prisma.notification.updateMany({
+      where: {
+        userId: id
+      },
+      data: {
+        isRead: true
+      }
+    });
+
+    if (!updatenotification) {
+      throw new ValidationError("notifications not update")
+    }
+
     const notifications = await prisma.notification.findMany({
       where: {
         userId: id,
