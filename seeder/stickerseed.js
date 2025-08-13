@@ -55,15 +55,11 @@ const stickerSeed = async () => {
       const sourcePath = path.join(__dirname, '../public/uploads', sticker.name); // Path to source file
       const destPath = path.join(uploadDir, sticker.name); // Destination path in uploads folder
 
-      // Log the source and destination paths for debugging
-      console.log('Source Path:', sourcePath);
-      console.log('Destination Path:', destPath);
 
       // Check if the sticker file exists in the source folder
       if (fs.existsSync(sourcePath)) {
         // Copy the file to the uploads directory
         fs.copyFileSync(sourcePath, destPath);
-        console.log(`Sticker file "${sticker.name}" moved to uploads folder.`);
 
         // Calculate the hash of the file for integrity check (using SHA256)
         const fileBuffer = fs.readFileSync(destPath);
@@ -95,7 +91,6 @@ const stickerSeed = async () => {
           },
         });
 
-        console.log(`Sticker "${sticker.name}" added to the 'All' category with URL: ${stickerUrl}`);
       } else {
         console.log(`Sticker file "${sticker.name}" does not exist in the source folder.`);
       }
@@ -111,13 +106,11 @@ const stickerSeed = async () => {
       const destPath = path.join(uploadDir, sticker.name);
 
       // Log the source path for debugging
-      console.log('Source Path:', sourcePath);
 
       // Check if the sticker file exists in the source folder
       if (fs.existsSync(sourcePath)) {
         // Copy the file to the uploads directory
         fs.copyFileSync(sourcePath, destPath);
-        console.log(`Sticker file "${sticker.name}" moved to uploads folder.`);
 
         // Calculate the hash of the file for integrity check (using SHA256)
         const fileBuffer = fs.readFileSync(destPath);
@@ -149,7 +142,6 @@ const stickerSeed = async () => {
           },
         });
 
-        console.log(`Sticker "${sticker.name}" added to the category: ${categories[categoryIndex].name} with URL: ${stickerUrl}`);
 
         // Cycle through the categories for the next sticker
         categoryIndex = (categoryIndex + 1) % categories.length;
@@ -158,7 +150,6 @@ const stickerSeed = async () => {
       }
     }
 
-    console.log('Sticker files seeded successfully!');
   } catch (error) {
     console.error('Error seeding sticker files:', error);
   }
