@@ -16,13 +16,13 @@ userNotificationRouter.get(
   userNotificationController.showAllNotifications
 );
 
-userNotificationRouter.put(
-  "/readNotification/:notificationId",
-  // limiter,
-  verifyUserToken,
-  validateRequest(userReadNotificationSchema),
-  userNotificationController.readNotification
-);
+// userNotificationRouter.put(
+//   "/readNotification/:notificationId",
+//   // limiter,
+//   verifyUserToken,
+//   validateRequest(userReadNotificationSchema),
+//   userNotificationController.readNotification
+// );
 
 userNotificationRouter.get(
   "/onAndOffNotification",

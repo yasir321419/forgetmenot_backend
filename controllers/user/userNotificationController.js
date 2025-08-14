@@ -44,42 +44,42 @@ const showAllNotifications = async (req, res, next) => {
   }
 }
 
-const readNotification = async (req, res, next) => {
-  try {
-    const { id } = req.user;
+// const readNotification = async (req, res, next) => {
+//   try {
+//     const { id } = req.user;
 
-    const { notificationId } = req.params;
+//     const { notificationId } = req.params;
 
-    const findnotification = await prisma.notification.findFirst({
-      where: {
-        id: notificationId,
-        userId: id
-      }
-    });
+//     const findnotification = await prisma.notification.findFirst({
+//       where: {
+//         id: notificationId,
+//         userId: id
+//       }
+//     });
 
-    if (!findnotification) {
-      throw new NotFoundError("notification not found")
-    }
+//     if (!findnotification) {
+//       throw new NotFoundError("notification not found")
+//     }
 
-    const readnotification = await prisma.notification.update({
-      where: {
-        id: findnotification.id,
-        userId: id
-      },
-      data: {
-        isRead: true
-      }
-    });
+//     const readnotification = await prisma.notification.update({
+//       where: {
+//         id: findnotification.id,
+//         userId: id
+//       },
+//       data: {
+//         isRead: true
+//       }
+//     });
 
-    if (!readnotification) {
-      throw new ValidationError("notification not read")
-    }
+//     if (!readnotification) {
+//       throw new ValidationError("notification not read")
+//     }
 
-    handlerOk(res, 200, readnotification, "notification read successfully")
-  } catch (error) {
-    next(error)
-  }
-}
+//     handlerOk(res, 200, readnotification, "notification read successfully")
+//   } catch (error) {
+//     next(error)
+//   }
+// }
 
 const onAndOffNotification = async (req, res, next) => {
   try {
@@ -109,6 +109,6 @@ const onAndOffNotification = async (req, res, next) => {
 
 module.exports = {
   showAllNotifications,
-  readNotification,
+  // readNotification,
   onAndOffNotification
 }
