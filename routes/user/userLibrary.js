@@ -10,14 +10,12 @@ const { userShowMessageAndStickerByCategorySchema } = require("../../schema/user
 
 userLibraryRouter.get(
   "/showAllMessageStickersCategory",
-  // limiter,
   verifyUserToken,
   userLibraryController.showAllMessageStickersCategory
 );
 
 userLibraryRouter.get(
   "/showAllMessageByCategory/:categoryId",
-  // limiter,
   verifyUserToken,
   validateRequest(userShowMessageAndStickerByCategorySchema),
   userLibraryController.showAllMessageByCategory
@@ -25,7 +23,6 @@ userLibraryRouter.get(
 
 userLibraryRouter.get(
   "/showAllStickerByCategory/:categoryId",
-  // limiter,
   verifyUserToken,
   validateRequest(userShowMessageAndStickerByCategorySchema),
   userLibraryController.showAllStickerByCategory

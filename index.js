@@ -16,10 +16,13 @@ const mileStoneCategory = require('./seeder/milestonecategoryseed');
 const otherMileStoneCategory = require('./seeder/othermilestonecatergoryseed');
 const reminderCategory = require('./seeder/remindercategoryseed');
 const stickerSeed = require('./seeder/stickerseed');
+const morgan = require("morgan");
 
 require("dotenv").config();
 
 app.use(cors());
+app.use(morgan('dev'));
+
 app.use('/public', express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

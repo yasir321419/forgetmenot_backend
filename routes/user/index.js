@@ -17,14 +17,4 @@ userRouter.use("/notification", userNotificationRouter);
 
 
 
-
-
-
-
-
-
-
-
-
-
 module.exports = userRouter;

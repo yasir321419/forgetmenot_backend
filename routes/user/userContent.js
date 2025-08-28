@@ -9,28 +9,24 @@ const { userFeedbackSchema } = require("../../schema/user/feedback");
 
 userContentRouter.get(
   "/showPrivacyPolicy",
-  // limiter,
   verifyUserToken,
   userContentController.showPrivacyPolicy
 );
 
 userContentRouter.get(
   "/showTermsCondition",
-  // limiter,
   verifyUserToken,
   userContentController.showTermsCondition
 );
 
 userContentRouter.get(
   "/showAboutApp",
-  // limiter,
   verifyUserToken,
   userContentController.showAboutApp
 );
 
 userContentRouter.post(
   "/submitFeedBack",
-  // limiter,
   verifyUserToken,
   validateRequest(userFeedbackSchema),
   userContentController.submitFeedBack
