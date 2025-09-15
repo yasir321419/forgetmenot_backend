@@ -18,8 +18,6 @@ const reminderCategory = require('./seeder/remindercategoryseed');
 const stickerSeed = require('./seeder/stickerseed');
 const morgan = require("morgan");
 
-require("dotenv").config();
-
 app.use(cors());
 app.use(morgan('dev'));
 
