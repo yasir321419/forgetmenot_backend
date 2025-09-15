@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 4000;
-const API_PRIFEX = '/api/v1';  // Prefix for all routes
+const API_PRIFEX = process.env.API_PRIFEX || '/api/v1';  // Prefix for all routes
 const rootRouter = require("./routes/index");
 const globalErrorMiddleware = require("./middleware/globalMiddleware");
 const dbConnect = require('./db/connectivity');
@@ -24,6 +24,10 @@ app.use(morgan('dev'));
 app.use('/public', express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+console.log(API_PRIFEX);
+console.log(port);
+
 
 
 app.use(API_PRIFEX, rootRouter);
