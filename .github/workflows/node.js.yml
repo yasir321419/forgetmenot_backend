@@ -17,6 +17,7 @@ jobs:
     # Expose secrets as environment variables
     env:
       DB_NAME: "${{ secrets.DB_NAME }}" 
+      DATABASE_URL: "${{ secrets.DATABASE_URL }}" 
       LIVE_DATABASE_URL: "${{ secrets.LIVE_DATABASE_URL }}"          # Use secrets
       PORT: "${{ secrets.PORT }}"
       API_PRIFEX: "${{ secrets.API_PRIFEX }}"
@@ -62,6 +63,7 @@ jobs:
           # Remove any existing .env and recreate it
           rm -f .env
           printf '%s\n' "LIVE_DATABASE_URL=${DB_URL_VALUE}"            >> .env
+          printf '%s\n' "DATABASE_URL=${DB_URL_VALUE}"            >> .env
           printf '%s\n' "NODE_ENV=production"                     >> .env
           printf '%s\n' "PORT=${PORT}"                            >> .env
           printf '%s\n' "API_PRIFEX=${API_PRIFEX}"                            >> .env
