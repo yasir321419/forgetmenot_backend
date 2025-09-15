@@ -51,7 +51,7 @@ otherMileStoneCategory();
 
 reminderCategory();
 
-stickerSeed();
+// stickerSeed();
 
 
 cron.schedule("* * * * *", async () => {
