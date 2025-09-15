@@ -124,7 +124,7 @@ jobs:
       - name: Start/Reload app with PM2
         run: |
           set -euo pipefail
-          APP_NAME="ollie-backend"
+          APP_NAME="forgetmenot-backend"
           if pm2 describe "${APP_NAME}" >/dev/null 2>&1; then
             pm2 reload "${APP_NAME}" --update-env
           else
@@ -138,8 +138,8 @@ jobs:
         run: |
           set -x
           pm2 status || true
-          tail -n 120 ~/.pm2/logs/ollie-backend-out.log   || true
-          tail -n 120 ~/.pm2/logs/ollie-backend-error.log || true
+          tail -n 120 ~/.pm2/logs/forgetmenot-backend-out.log   || true
+          tail -n 120 ~/.pm2/logs/forgetmenot-backend-error.log || true
 
       # Health check
       - name: Health check
@@ -155,12 +155,12 @@ jobs:
             sleep 2
           done
           echo "Health check FAILED"
-          tail -n 200 ~/.pm2/logs/ollie-backend-out.log   || true
-          tail -n 200 ~/.pm2/logs/ollie-backend-error.log || true
+          tail -n 200 ~/.pm2/logs/forgetmenot-backend-out.log   || true
+          tail -n 200 ~/.pm2/logs/forgetmenot-backend-error.log || true
           exit 1
 
       # Final status and logs (non-blocking)
       - name: PM2 status & recent logs
         run: |
           pm2 status
-          timeout 8s pm2 logs ollie-backend --lines 80 --nostream || true
+          timeout 8s pm2 logs forgetmenot-backend --lines 80 --nostream || true
