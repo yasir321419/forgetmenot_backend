@@ -14,7 +14,6 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 30
 
-    # All secrets come from your repo/org Secrets
     env:
       DB_NAME:              ${{ secrets.DB_NAME }}
       DATABASE_URL:         ${{ secrets.DATABASE_URL }}       # URL-encode special chars in password!
@@ -49,7 +48,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2) Create .env from secrets (writes both DATABASE_URL and LIVE_DATABASE_URL)
+      # 2) Create .env from secrets
       - name: Create .env
         run: |
           set -euo pipefail
@@ -90,37 +89,54 @@ jobs:
             echo "ERROR: DATABASE_URL in .env is empty"; exit 1
           fi
 
-      # 3) Node.js with cache
+      # 3) Validate critical env presence (masked) + URL format
+      - name: Validate env & URL format
+        run: |
+          set -euo pipefail
+          for k in DATABASE_URL PORT HOST API_PRIFEX; do
+            if [ -z "${!k:-}" ]; then echo "MISSING $k"; exit 1; fi
+            echo "$k is set"
+          done
+          node -e "try{new URL(process.env.DATABASE_URL);console.log('DATABASE_URL looks valid')}catch(e){console.error('BAD DATABASE_URL:', e.message);process.exit(1)}"
+
+      # 4) Sanity check PORT & loopback (prove we can bind)
+      - name: Sanity check PORT & loopback
+        run: |
+          set -euo pipefail
+          : "${PORT:=4000}"
+          node -e "require('http').createServer((_,r)=>r.end('ok')).listen(process.env.PORT||4000,'127.0.0.1',()=>console.log('temp up'))" &
+          sleep 1
+          curl -fsS "http://127.0.0.1:${PORT}/" >/dev/null
+          kill %1 || true
+          echo "Temp server reachable on ${PORT}"
+
+      # 5) Node.js with cache
       - name: Use Node.js 22.x
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
           cache: npm
 
-      # 4) Install dependencies
+      # 6) Install dependencies
       - name: Install dependencies
         run: npm ci --loglevel=verbose --foreground-scripts
 
-      # 5) Build & Prisma (optional if you use Prisma)
+      # 7) Build & Prisma (optional)
       - name: Build & Prisma
         run: |
           set -euxo pipefail
           npm run build --if-present
-
-          # Prisma reads .env from cwd; generate can run without DB
           unset DATABASE_URL || true
           npx prisma generate || true
-
-          # Apply migrations in prod; fallback to db push for first deploys
           npx prisma migrate deploy || npx prisma db push
 
-      # 6) Ensure PM2
+      # 8) Ensure PM2
       - name: Ensure PM2 installed
         run: |
           command -v pm2 >/dev/null 2>&1 || sudo npm i -g pm2
           pm2 -v
 
-      # 7) Start/Reload with PM2 (robust env + entry detection + single process)
+      # 9) Start/Reload with PM2 (env + entry detection + single process)
       - name: Start/Reload app with PM2
         run: |
           set -euo pipefail
@@ -128,16 +144,15 @@ jobs:
           APP_DIR="$GITHUB_WORKSPACE"
           cd "$APP_DIR"
 
-          # Export .env so PM2 inherits PORT/HOST/DATABASE_URL etc (no secrets echoed)
+          # Export .env for PM2
           set -a
           [ -f .env ] && . ./.env
           set +a
 
-          # Safe defaults
           : "${HOST:=127.0.0.1}"
           : "${PORT:=4000}"
 
-          # EXPRESS: prefer index.js, fallback server.js; also support Nest's dist/main.js if present
+          # Express entries preferred
           if [ -f index.js ]; then
             ENTRY="index.js"
           elif [ -f server.js ]; then
@@ -154,17 +169,26 @@ jobs:
           pm2 delete ollie-backend || true
           pm2 delete index || true
 
-          # Start or reload canonical app
+          # Start or reload canonical app (use same node as shell)
           if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
             pm2 reload "$APP_NAME" --update-env
           else
-            pm2 start "$ENTRY" --name "$APP_NAME" --time --cwd "$APP_DIR"
+            pm2 start "$ENTRY" --name "$APP_NAME" --time --cwd "$APP_DIR" --interpreter "$(which node)"
           fi
 
           pm2 save
           echo "PM2 started $APP_NAME with ENTRY=$ENTRY PORT=$PORT HOST=$HOST"
 
-      # 8) Show startup logs
+          # Verify listener; show logs if not
+          for i in 1 2 3 4 5; do
+            sudo ss -ltnp | grep -qE ":${PORT}\b" && { echo "Listener on :${PORT}"; exit 0; }
+            sleep 1
+          done
+          echo "No listener on :${PORT}. Showing PM2 logs:"
+          pm2 logs "$APP_NAME" --lines 200 || true
+          exit 1
+
+      # 10) Show startup logs
       - name: Show startup logs
         run: |
           set -e
@@ -172,7 +196,7 @@ jobs:
           tail -n 120 ~/.pm2/logs/forgetmenot-backend-out.log   || true
           tail -n 120 ~/.pm2/logs/forgetmenot-backend-error.log || true
 
-      # 9) Health check (tries /health, then /; prints listeners and logs on fail)
+      # 11) Health check (tries /health then /; prints listeners and logs on fail)
       - name: Health check
         run: |
           set -euo pipefail
@@ -197,7 +221,7 @@ jobs:
           pm2 logs forgetmenot-backend --lines 200 || true
           exit 1
 
-      # 10) Final status
+      # 12) Final status
       - name: PM2 status & recent logs
         run: |
           pm2 status
