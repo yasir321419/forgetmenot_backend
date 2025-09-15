@@ -14,74 +14,73 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 30
 
-    # All secrets come from your repo/org Secrets
+    # Expose secrets as environment variables
     env:
-      DB_NAME:              ${{ secrets.DB_NAME }}
-      DATABASE_URL:         ${{ secrets.DATABASE_URL }}       # URL-encode special chars in password!
-      LIVE_DATABASE_URL:    ${{ secrets.LIVE_DATABASE_URL }}  # optional fallback
-      PORT:                 ${{ secrets.PORT }}               # e.g. 4000
-      HOST:                 ${{ secrets.HOST }}               # e.g. 127.0.0.1 or 0.0.0.0
-      API_PRIFEX:           ${{ secrets.API_PRIFEX }}
-      SECRET_KEY:           ${{ secrets.SECRET_KEY }}
-      MAIL_SERVICE:         ${{ secrets.MAIL_SERVICE }}
-      MAIL_HOST:            ${{ secrets.MAIL_HOST }}
-      MAIL_USERNAME:        ${{ secrets.MAIL_USERNAME }}
-      MAIL_PASSWORD:        ${{ secrets.MAIL_PASSWORD }}
-      MAIL_ENCRYPTION:      ${{ secrets.MAIL_ENCRYPTION }}
-      MAIL_PORT:            ${{ secrets.MAIL_PORT }}
-      MAIL_FROM_NAME:       ${{ secrets.MAIL_FROM_NAME }}
-      TWILIO_ACCOUNT_SID:   ${{ secrets.TWILIO_ACCOUNT_SID }}
-      TWILIO_AUTH_TOKEN:    ${{ secrets.TWILIO_AUTH_TOKEN }}
-      NUMBER:               ${{ secrets.NUMBER }}
+      DB_NAME: "${{ secrets.DB_NAME }}" 
+      DATABASE_URL: "${{ secrets.DATABASE_URL }}" 
+      LIVE_DATABASE_URL: "${{ secrets.LIVE_DATABASE_URL }}"          # Use secrets
+      PORT: "${{ secrets.PORT }}"
+      API_PRIFEX: "${{ secrets.API_PRIFEX }}"
+      SECRET_KEY: "${{ secrets.SECRET_KEY }}"
+      MAIL_SERVICE: "${{ secrets.MAIL_SERVICE }}"
+      MAIL_HOST: "${{ secrets.MAIL_HOST }}"
+      MAIL_USERNAME: "${{ secrets.MAIL_USERNAME }}"
+      MAIL_PASSWORD: "${{ secrets.MAIL_PASSWORD }}"
+      MAIL_ENCRYPTION: "${{ secrets.MAIL_ENCRYPTION }}"
+      MAIL_PORT: "${{ secrets.MAIL_PORT }}"
+      MAIL_FROM_NAME: "${{ secrets.MAIL_FROM_NAME }}"
+      TWILIO_ACCOUNT_SID: "${{ secrets.TWILIO_ACCOUNT_SID }}"
+      TWILIO_AUTH_TOKEN: "${{ secrets.TWILIO_AUTH_TOKEN }}"
+      NUMBER: "${{ secrets.NUMBER }}"
+  
 
     steps:
-      # 0) Runner info (no secrets printed)
+      # Print the environment info to quickly debug issues
       - name: Kickoff
         run: |
-          set -e
+          set -x
           echo "== CI kickoff at $(date -u) =="
           echo "Runner: $(uname -a)"
           whoami
           node -v || true
           npm -v || true
 
-      # 1) Checkout
+      # Checkout code
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2) Create .env from secrets (writes both DATABASE_URL and LIVE_DATABASE_URL)
-      - name: Create .env
+      # Create .env file from secrets with validation
+      - name: Create .env from secrets (no heredoc)
         run: |
           set -euo pipefail
+
+          # Prefer DATABASE_URL, fallback to LIVE_DATABASE_URL
           DB_URL_VALUE="${DATABASE_URL:-${LIVE_DATABASE_URL:-}}"
           if [ -z "${DB_URL_VALUE}" ]; then
             echo "ERROR: DATABASE_URL resolved to empty"; exit 1
           fi
 
+          # Remove any existing .env and recreate it
           rm -f .env
-          {
-            printf 'DATABASE_URL=%s\n' "${DB_URL_VALUE}"
-            printf 'LIVE_DATABASE_URL=%s\n' "${DB_URL_VALUE}"
-            printf 'NODE_ENV=production\n'
-            printf 'HOST=%s\n' "${HOST:-127.0.0.1}"
-            printf 'PORT=%s\n' "${PORT:-4000}"
-            printf 'API_PRIFEX=%s\n' "${API_PRIFEX:-/api/v1}"
-            printf 'SECRET_KEY=%s\n' "${SECRET_KEY}"
-            printf 'MAIL_SERVICE=%s\n' "${MAIL_SERVICE}"
-            printf 'MAIL_HOST=%s\n' "${MAIL_HOST}"
-            printf 'MAIL_USERNAME=%s\n' "${MAIL_USERNAME}"
-            printf 'MAIL_PASSWORD=%s\n' "${MAIL_PASSWORD}"
-            printf 'MAIL_ENCRYPTION=%s\n' "${MAIL_ENCRYPTION}"
-            printf 'MAIL_PORT=%s\n' "${MAIL_PORT}"
-            printf 'MAIL_FROM_NAME=%s\n' "${MAIL_FROM_NAME}"
-            printf 'TWILIO_ACCOUNT_SID=%s\n' "${TWILIO_ACCOUNT_SID}"
-            printf 'TWILIO_AUTH_TOKEN=%s\n' "${TWILIO_AUTH_TOKEN}"
-            printf 'NUMBER=%s\n' "${NUMBER}"
-          } > .env
-
+          printf '%s\n' "LIVE_DATABASE_URL=${DB_URL_VALUE}"            >> .env
+          printf '%s\n' "DATABASE_URL=${DB_URL_VALUE}"            >> .env
+          printf '%s\n' "NODE_ENV=production"                     >> .env
+          printf '%s\n' "PORT=${PORT}"                            >> .env
+          printf '%s\n' "API_PRIFEX=${API_PRIFEX}"                            >> .env
+          printf '%s\n' "SECRET_KEY=${SECRET_KEY}"                >> .env
+          printf '%s\n' "MAIL_SERVICE=${MAIL_SERVICE}"            >> .env
+          printf '%s\n' "MAIL_HOST=${MAIL_HOST}"                  >> .env
+          printf '%s\n' "MAIL_USERNAME=${MAIL_USERNAME}"          >> .env
+          printf '%s\n' "MAIL_PASSWORD=${MAIL_PASSWORD}"          >> .env
+          printf '%s\n' "MAIL_ENCRYPTION=${MAIL_ENCRYPTION}"      >> .env
+          printf '%s\n' "MAIL_PORT=${MAIL_PORT}"                  >> .env
+          printf '%s\n' "MAIL_FROM_NAME=${MAIL_FROM_NAME}"        >> .env
+          printf '%s\n' "TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}"        >> .env
+          printf '%s\n' "TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}"        >> .env
+          printf '%s\n' "NUMBER=${NUMBER}"        >> .env
           echo "Wrote .env with $(wc -l < .env) lines."
 
-          # Validate DATABASE_URL exists & non-empty
+          # Validate the environment variables
           if ! grep -q '^DATABASE_URL=' .env; then
             echo "ERROR: DATABASE_URL not written to .env"; exit 1
           fi
@@ -90,114 +89,77 @@ jobs:
             echo "ERROR: DATABASE_URL in .env is empty"; exit 1
           fi
 
-      # 3) Node.js with cache
+      # Use Node.js
       - name: Use Node.js 22.x
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
           cache: npm
 
-      # 4) Install dependencies
+      # Install dependencies
       - name: Install dependencies
         run: npm ci --loglevel=verbose --foreground-scripts
 
-      # 5) Build & Prisma (optional if you use Prisma)
-      - name: Build & Prisma
+      # Prisma generation & migration
+      - name: Build & Prisma migrate (verbose)
         run: |
           set -euxo pipefail
+          echo "=== npm ci ==="
+          npm ci --loglevel=verbose --foreground-scripts
+          echo "=== build (if present) ==="
           npm run build --if-present
-
-          # Prisma reads .env from cwd; generate can run without DB
+          echo "=== prisma generate ==="
           unset DATABASE_URL || true
-          npx prisma generate || true
-
-          # Apply migrations in prod; fallback to db push for first deploys
+          npx prisma generate
+          echo "=== prisma migrate ==="
           npx prisma migrate deploy || npx prisma db push
 
-      # 6) Ensure PM2
+      # Ensure PM2 is installed
       - name: Ensure PM2 installed
         run: |
           command -v pm2 >/dev/null 2>&1 || sudo npm i -g pm2
           pm2 -v
 
-      # 7) Start/Reload with PM2 (robust env + entry detection + single process)
+      # Start/Reload app with PM2
       - name: Start/Reload app with PM2
         run: |
           set -euo pipefail
           APP_NAME="forgetmenot-backend"
-          APP_DIR="$GITHUB_WORKSPACE"
-          cd "$APP_DIR"
-
-          # Export .env so PM2 inherits PORT/HOST/DATABASE_URL etc (no secrets echoed)
-          set -a
-          [ -f .env ] && . ./.env
-          set +a
-
-          # Safe defaults
-          : "${HOST:=127.0.0.1}"
-          : "${PORT:=4000}"
-
-          # EXPRESS: prefer index.js, fallback server.js; also support Nest's dist/main.js if present
-          if [ -f index.js ]; then
-            ENTRY="index.js"
-          elif [ -f server.js ]; then
-            ENTRY="server.js"
-          elif [ -f dist/main.js ]; then
-            ENTRY="dist/main.js"
+          if pm2 describe "${APP_NAME}" >/dev/null 2>&1; then
+            pm2 reload "${APP_NAME}" --update-env
           else
-            echo "ERROR: No entry file found (index.js, server.js, or dist/main.js)."
-            ls -la
-            exit 1
+            pm2 start index.js --name "${APP_NAME}"
           fi
-
-          # Remove legacy processes so they can't resurrect
-          pm2 delete ollie-backend || true
           pm2 delete index || true
-
-          # Start or reload canonical app
-          if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
-            pm2 reload "$APP_NAME" --update-env
-          else
-            pm2 start "$ENTRY" --name "$APP_NAME" --time --cwd "$APP_DIR"
-          fi
-
           pm2 save
-          echo "PM2 started $APP_NAME with ENTRY=$ENTRY PORT=$PORT HOST=$HOST"
 
-      # 8) Show startup logs
+      # Show startup logs
       - name: Show startup logs
         run: |
-          set -e
+          set -x
           pm2 status || true
           tail -n 120 ~/.pm2/logs/forgetmenot-backend-out.log   || true
           tail -n 120 ~/.pm2/logs/forgetmenot-backend-error.log || true
 
-      # 9) Health check (tries /health, then /; prints listeners and logs on fail)
+      # Health check
       - name: Health check
         run: |
-          set -euo pipefail
-          : "${PORT:=4000}"
-          URL1="http://127.0.0.1:${PORT}/health"
-          URL2="http://127.0.0.1:${PORT}/"
-
-          echo "Active listeners before check:"
-          sudo ss -ltnp | grep -E ":${PORT}\b|:80\b" || echo "no listeners on ${PORT} (yet)"
-
+          set -e
+          URL="http://127.0.0.1:${PORT:-4000}/health"
           for i in {1..30}; do
-            if curl -fsS "$URL1" >/dev/null || curl -fsS "$URL2" >/dev/null; then
+            if curl -fsS "$URL" >/dev/null; then
               echo "Health check passed at $(date -u)"
               exit 0
             fi
-            echo "Waiting for app on ${URL1} / ${URL2}... ($i/30)"
+            echo "Waiting for app... ($i/30)"
             sleep 2
           done
-
           echo "Health check FAILED"
-          pm2 status || true
-          pm2 logs forgetmenot-backend --lines 200 || true
+          tail -n 200 ~/.pm2/logs/forgetmenot-backend-out.log   || true
+          tail -n 200 ~/.pm2/logs/forgetmenot-backend-error.log || true
           exit 1
 
-      # 10) Final status
+      # Final status and logs (non-blocking)
       - name: PM2 status & recent logs
         run: |
           pm2 status
