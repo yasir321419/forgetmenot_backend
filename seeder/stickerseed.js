@@ -1,7 +1,10 @@
+
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const prisma = require('../config/prismaConfig');
+const uploadFileWithFolder = require('../utils/s3Uploads');
+require('dotenv').config();
 
 // Assuming you have Prisma set up for your project
 const stickers = [
@@ -15,13 +18,7 @@ const stickers = [
   { name: '8.png' },
 ];
 
-const uploadDir = path.join(__dirname, '../public/uploads');
-
-// Ensure the uploads directory exists
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
-
+// Step 1: Seeding stickers in AWS
 const stickerSeed = async () => {
   try {
     // Fetch categories from the database
@@ -45,20 +42,22 @@ const stickerSeed = async () => {
       return;
     }
 
-    // Construct base URL dynamically
-    const baseUrl = 'http://localhost:4000'; // Adjust this as per your environment, or make it dynamic
+    // Use the S3_ACCESS_URL from environment variable for your base URL
+    const baseUrl = process.env.S3_ACCESS_URL; // https://forgetmenotbucket.s3.ca-central-1.amazonaws.com
 
-    // Step 1: Add all stickers to the "All" category
+    // Step 2: Add all stickers to the "All" category
+    const stickerURLs = [];
     for (const sticker of stickers) {
       const sourcePath = path.join(__dirname, '../public/uploads', sticker.name);
-      const destPath = path.join(uploadDir, sticker.name);
 
       if (fs.existsSync(sourcePath)) {
-        // Copy the file to the uploads directory
-        fs.copyFileSync(sourcePath, destPath);
+        // Read the file buffer
+        const fileBuffer = fs.readFileSync(sourcePath);
+
+        // Upload the file to S3
+        const s3ImageUrl = await uploadFileWithFolder(fileBuffer, sticker.name, 'image/png', 'stickers');
 
         // Calculate the hash of the file for integrity check (using SHA256)
-        const fileBuffer = fs.readFileSync(destPath);
         const hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
 
         const admin = await prisma.admin.findUnique({
@@ -72,36 +71,41 @@ const stickerSeed = async () => {
           continue;
         }
 
-        const encodedFileName = encodeURIComponent(sticker.name); // Encode the filename
-        const stickerUrl = `${baseUrl}/public/uploads/${encodedFileName}`;
-
         // Insert the sticker into the "All" category
         await prisma.sticker.create({
           data: {
-            url: stickerUrl,
+            url: s3ImageUrl, // This URL comes from the upload function
             hash: hash,
             categoryId: allCategory.id,
             createdById: admin.id,
           },
         });
+
+        // Save the sticker URL for distribution later
+        stickerURLs.push(s3ImageUrl);
       } else {
         console.log(`Sticker file "${sticker.name}" does not exist in the source folder.`);
       }
     }
 
-    // Step 2: Distribute the remaining stickers across other categories
+    // Step 3: Distribute the remaining stickers across other categories
     let categoryIndex = 0;
     for (const sticker of stickers) {
-      // Skip the stickers already added to the "All" category
       const sourcePath = path.join(__dirname, '../public/uploads', sticker.name);
-      const destPath = path.join(uploadDir, sticker.name);
+
+      // Skip stickers that were already added to the "All" category
+      if (stickerURLs.includes(sticker.name)) {
+        continue; // Skip this sticker, already added to the "All" category
+      }
 
       if (fs.existsSync(sourcePath)) {
-        // Copy the file to the uploads directory
-        fs.copyFileSync(sourcePath, destPath);
+        // Read the file buffer
+        const fileBuffer = fs.readFileSync(sourcePath);
+
+        // Upload the file to S3
+        const s3ImageUrl = await uploadFileWithFolder(fileBuffer, sticker.name, 'image/png', 'stickers');
 
         // Calculate the hash of the file for integrity check (using SHA256)
-        const fileBuffer = fs.readFileSync(destPath);
         const hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
 
         const admin = await prisma.admin.findUnique({
@@ -115,13 +119,10 @@ const stickerSeed = async () => {
           continue;
         }
 
-        const encodedFileName = encodeURIComponent(sticker.name); // Encode the filename
-        const stickerUrl = `${baseUrl}/public/uploads/${encodedFileName}`;
-
         // Insert the sticker into the current category (evenly distributed)
         await prisma.sticker.create({
           data: {
-            url: stickerUrl,
+            url: s3ImageUrl, // This URL comes from the upload function
             hash: hash,
             categoryId: categories[categoryIndex].id,
             createdById: admin.id,
@@ -139,6 +140,6 @@ const stickerSeed = async () => {
   }
 };
 
-
 // Call stickerSeed directly
 module.exports = stickerSeed;
+

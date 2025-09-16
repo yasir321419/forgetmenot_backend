@@ -9,6 +9,10 @@ const { handlerOk } = require("../../handler/resHandler");
 const { hashPassword, comparePassword } = require("../../utils/passwordHashed");
 const { genToken } = require("../../utils/generateToken");
 const admin = require('firebase-admin');
+const uploadFileWithFolder = require("../../utils/s3Uploads");
+const { v4: uuidv4 } = require('uuid');
+const path = require("path");
+
 
 const SignUp = async (req, res, next) => {
   try {
@@ -419,10 +423,14 @@ const editProfile = async (req, res, next) => {
 
 
     if (file) {
-      const filePath = file.filename; // use filename instead of path
-      const basePath = `http://${req.get("host")}/public/uploads/`;
-      const image = `${basePath}${filePath}`;
-      updateObj.image = image;
+
+      const fileBuffer = file.buffer;
+      const folder = 'uploads';
+      const filename = `${uuidv4()}-${Date.now()}${path.extname(file.originalname)}`;
+      const contentType = file.mimetype || 'application/octet-stream';
+
+      const s3ImageUrl = await uploadFileWithFolder(fileBuffer, filename, contentType, folder);
+      updateObj.image = s3ImageUrl;
     }
 
     const updateuser = await prisma.user.update({

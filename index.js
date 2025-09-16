@@ -13,7 +13,7 @@ const messageSeed = require('./seeder/messageseed');
 const mileStoneCategory = require('./seeder/milestonecategoryseed');
 const otherMileStoneCategory = require('./seeder/othermilestonecatergoryseed');
 const reminderCategory = require('./seeder/remindercategoryseed');
-// const stickerSeed = require('./seeder/stickerseed');
+const stickerSeed = require('./seeder/stickerseed');
 
 const cron = require('node-cron');
 
@@ -79,7 +79,7 @@ async function start() {
       await mileStoneCategory();
       await otherMileStoneCategory();
       await reminderCategory();
-      // await stickerSeed();
+      await stickerSeed();
       bootStatus.seeds = 'done';
       console.log('[BOOT] Seeders completed');
     } catch (seedErr) {

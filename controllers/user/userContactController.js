@@ -1,6 +1,10 @@
 const prisma = require("../../config/prismaConfig");
 const { ValidationError, NotFoundError, ConflictError } = require("../../handler/CustomError");
 const { handlerOk } = require("../../handler/resHandler");
+const uploadFileWithFolder = require("../../utils/s3Uploads");
+const { v4: uuidv4 } = require('uuid');
+const path = require("path");
+
 
 
 
@@ -9,22 +13,13 @@ const saveUserContacts = async (req, res, next) => {
     // Destructure the request body
     const { email, name, phone } = req.body;
 
-    // Validate if the required fields are arrays
-    // if (!Array.isArray(name) || !Array.isArray(email) || !Array.isArray(phone)) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Name, email, phone, must be arrays."
-    //   });
-    // }
-
-    // Log the request body
+    // Log the request body for debugging
     console.log(req.body);
 
     const { id } = req.user;
-    const files = req.files;
-    console.log(files, 'files');
-
-
+    const files = req.files;  // Multiple files in an array
+    const file = req.file;    // Single file
+    console.log(files, 'files');  // Log files for debugging
 
     const contacts = [];
 
@@ -46,10 +41,30 @@ const saveUserContacts = async (req, res, next) => {
         });
       }
 
-      // Check if there is a file for this contact, otherwise skip the image field
-      const filePath = files && files[i] ? files[i].filename : null;
-      const basePath = `http://${req.get("host")}/public/uploads/`;
-      const image = filePath ? `${basePath}${filePath}` : null;  // Use the default value if no file is found
+      // Initialize image variable
+      let image = null;
+
+      // Handle file upload
+      if (files && files[i]) {  // If multiple files are provided and there's a file for this contact
+        const file = files[i];  // Get the file for this contact
+        const fileBuffer = file.buffer;  // The file buffer
+        const folder = 'uploads';  // Folder name in S3
+        const filename = `${uuidv4()}-${Date.now()}${path.extname(file.originalname)}`;
+        const contentType = file.mimetype || 'application/octet-stream';
+
+        // Upload the file to S3 and get the URL
+        const s3ImageUrl = await uploadFileWithFolder(fileBuffer, filename, contentType, folder);
+        image = s3ImageUrl;  // Assign the image URL
+      } else if (file) {  // If only a single file is uploaded
+        const fileBuffer = file.buffer;
+        const folder = 'uploads';  // Folder name in S3
+        const filename = `${uuidv4()}-${Date.now()}${path.extname(file.originalname)}`;
+        const contentType = file.mimetype || 'application/octet-stream';
+
+        // Upload the file to S3 and get the URL
+        const s3ImageUrl = await uploadFileWithFolder(fileBuffer, filename, contentType, folder);
+        image = s3ImageUrl;  // Assign the image URL
+      }
 
       // Push contact data to array
       contacts.push({
@@ -77,6 +92,7 @@ const saveUserContacts = async (req, res, next) => {
     next(error);
   }
 };
+
 
 const showUserContacts = async (req, res, next) => {
   try {
@@ -108,10 +124,14 @@ const editUserContact = async (req, res, next) => {
     const updatedObj = {}
 
     if (file) {
-      const filePath = file.filename; // use filename instead of path
-      const basePath = `http://${req.get("host")}/public/uploads/`;
-      const image = `${basePath}${filePath}`;
-      updatedObj.image = image
+      const fileBuffer = file.buffer;
+      const folder = 'uploads';  // Folder name in S3
+      const filename = `${uuidv4()}-${Date.now()}${path.extname(file.originalname)}`;
+      const contentType = file.mimetype || 'application/octet-stream';
+
+      // Upload the file to S3 and get the URL
+      const s3ImageUrl = await uploadFileWithFolder(fileBuffer, filename, contentType, folder);
+      image = s3ImageUrl;  // Assign the image URL
     }
 
 
