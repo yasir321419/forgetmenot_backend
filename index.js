@@ -53,7 +53,7 @@ app.use(globalErrorMiddleware);
 
 // ---- Root route (optional) ----
 app.get('/', (_req, res) => {
-  res.send('server is running...!!!');
+  res.send('server is running...!!!!!');
 });
 
 // ---- Hardening: catch unhandled errors to log them rather than instant-exit ----
