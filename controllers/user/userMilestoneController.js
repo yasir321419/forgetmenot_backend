@@ -176,7 +176,7 @@ const showAllMilestone = async (req, res, next) => {
     });
 
     if (findallmileston.length === 0) {
-      throw new ConflictError("milestone not found")
+      throw new NotFoundError("milestone not found")
     }
 
     handlerOk(res, 200, findallmileston, "milestone found successfully")

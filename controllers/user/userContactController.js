@@ -105,7 +105,7 @@ const showUserContacts = async (req, res, next) => {
     });
 
     if (findusercontacts.length === 0) {
-      throw new ValidationError("contact not found")
+      throw new NotFoundError("contact not found")
     }
 
     handlerOk(res, 200, findusercontacts, 'contact found successfully')
