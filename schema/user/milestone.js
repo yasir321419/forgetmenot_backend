@@ -62,6 +62,7 @@ const userSendMilestoneToNumberSchema = Joi.object({
   }),
   body: Joi.object({
     phoneNumber: Joi.string().required(),
+    stickersId: Joi.array().items(Joi.string()).optional()
   }),
 });
 

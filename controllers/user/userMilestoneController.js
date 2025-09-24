@@ -2,6 +2,7 @@ const prisma = require("../../config/prismaConfig");
 const { NotFoundError, ValidationError, ConflictError } = require("../../handler/CustomError");
 const { handlerOk } = require("../../handler/resHandler");
 const checkUserSubscription = require("../../utils/checkSubscription");
+const sendMilestoneWithSticker = require("../../utils/sendSms");
 const send_message = require("../../utils/sendSms");
 const { validateFreePlanUsage } = require("../../utils/subscriptionValidator");
 
@@ -308,10 +309,12 @@ const editMilestone = async (req, res, next) => {
 
 const sendMilestoneToNumber = async (req, res, next) => {
   try {
-    const { phoneNumber } = req.body;
+    const { phoneNumber, stickersId } = req.body;
     const { id } = req.user;
     const { milestoneId } = req.params;
 
+
+    // Find milestone
     const findmilestone = await prisma.milestone.findUnique({
       where: {
         id: milestoneId,
@@ -320,9 +323,29 @@ const sendMilestoneToNumber = async (req, res, next) => {
     });
 
     if (!findmilestone) {
-      throw new NotFoundError("milestone not found")
+      throw new NotFoundError("milestone not found");
     }
 
+    // Find stickers, if any
+    const findstickers = await prisma.sticker.findMany({
+      where: {
+        id: {
+          in: stickersId
+        }
+      }
+    });
+
+    console.log(findstickers);
+
+
+    if (findstickers.length === 0) {
+      throw new NotFoundError("stickers not found");
+    }
+
+    // Construct sticker URLs (assuming each sticker object has a 'url' field)
+    const stickerUrls = findstickers.map(sticker => sticker.url);
+
+    // Find contact (optional check, if necessary)
     const findcontact = await prisma.contacts.findFirst({
       where: {
         phoneNumber: phoneNumber,
@@ -330,18 +353,24 @@ const sendMilestoneToNumber = async (req, res, next) => {
       }
     });
 
+    // Uncomment the check if you need the contact to be required
     // if (!findcontact) {
-    //   throw new NotFoundError("contact not found")
+    //   throw new NotFoundError("contact not found");
     // }
 
-    await send_message({ type: "milestone", recipient: phoneNumber, value: findmilestone });
+    // Send the milestone with stickers (URLs)
+    await sendMilestoneWithSticker({
+      phoneNumber: phoneNumber,
+      milestone: findmilestone,
+      stickerUrl: stickerUrls,  // Pass the sticker URLs
+    });
 
-    handlerOk(res, 200, null, "message sent successfully")
-
+    handlerOk(res, 200, null, "message sent successfully");
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
+
 
 const todayReminders = async (req, res, next) => {
   try {
