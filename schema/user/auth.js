@@ -17,7 +17,8 @@ const userVerifyOtpSchema = Joi.object({
     password: Joi.string()
       .min(8)
       .max(30)
-      .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d@$!%*?&]{8,}$'))
+      // .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d@$!%*?&]{8,}$'))
+      .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d@$!%*?&.]{8,}$'))
       .optional()
       .messages({
         'string.pattern.base': 'Password must include uppercase, lowercase, and a number.',
